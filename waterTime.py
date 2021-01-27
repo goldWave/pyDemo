@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import os
+import os, io
 import exifread
 from PIL import Image, ImageFont, ImageDraw
 import re
 import datetime
+import time
+import whatimage
+import pyheif
+import piexif
 
 # Src_path="test"
-Src_path="ming"
+Src_path="/Users/jimbo/Documents/waterPhoto"
 time_key="EXIF DateTimeOriginal"
 
 def exifread_infos(photo):
@@ -18,19 +22,23 @@ def exifread_infos(photo):
 	if time_key in tags:
 		dateStr = tags[time_key].printable
 	else:
-		a = os.path.basename(photo).split('.')[0]
-		try:
-			#微信图片_20210126154236
-			d = re.sub('微信图片_([0-9]+)$', r'\1', a)
+		iName = os.path.basename(photo).split('.')[0]
+		if "mmexport" in iName:
+			timeStamp = re.sub('mmexport([0-9]+)$', r'\1', iName)
+			iTime = int(timeStamp)
+			timeArray = time.localtime(iTime/1000)
+			dateStr = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
+		elif "微信图片_" in iName:
+			d = re.sub('微信图片_([0-9]+)$', r'\1', iName)
 			dateStr = datetime.datetime.strptime(d, '%Y%m%d%H%M%S').strftime('%Y-%m-%d %H:%M:%S')
-		except:
+		else:
 			try:
 				#2020-11-09 214158
-				dateStr = datetime.datetime.strptime(a, '%Y-%m-%d %H%M%S').strftime('%Y-%m-%d %H:%M:%S')
+				dateStr = datetime.datetime.strptime(iName, '%Y-%m-%d %H%M%S').strftime('%Y-%m-%d %H:%M:%S')
 			except:
+				print(photo)
 				pass
 	f.close()
-
 	return dateStr
 
 
@@ -71,6 +79,34 @@ def is_img(x):
 	_a=pattern.findall(x)
 	return len(_a)>0
 
+def is_heic_img(x):
+	pattern = re.compile(".heic")
+	# pattern = re.compile(".heic")
+	_a=pattern.findall(x)
+	return len(_a)>0
+
+def read_image_file_rb(file_path):
+    with open(file_path, 'rb') as f:
+        file_data = f.read()
+    return file_data
+
+def convertHECIToJpg(path):
+	//"/Users/jimbo/Desktop/test/IMG_2549.HEIC.heic"
+	heif_file = pyheif.read(path)
+	# Creation of image 
+	image = Image.frombytes(heif_file.mode,heif_file.size,heif_file.data,"raw",heif_file.mode,heif_file.stride,)
+	# Retrive the metadata
+	for metadata in heif_file.metadata or []:
+		if metadata['type'] == 'Exif':
+			exif_dict = piexif.load(metadata['data'])
+
+	# PIL rotates the image according to exif info, so it's necessary to remove the orientation tag otherwise the image will be rotated again (1° time from PIL, 2° from viewer).
+	exif_dict['0th'][274] = 0
+	exif_bytes = piexif.dump(exif_dict)
+	file_path_jpeg="/Users/jimbo/Desktop/test/IMG_2549.jpg"
+	image.save(file_path_jpeg, "JPEG", exif=exif_bytes)
+	
+
 def main():
 	listDir = os.listdir(Src_path)
 	out_ = Src_path + "/out"
@@ -79,14 +115,27 @@ def main():
 
 	for item in listDir:
 		_is_img=is_img(item)
-		if(not _is_img):
+		_is_heic=is_heic_img(item)
+		if(not _is_img or _is_heic):
 			continue
 
+		#continnuce
 		src=Src_path+"/"+item
+		if _is_heic:
+			convertHECIToJpg(src)
+			pass
+
 		time = exifread_infos(src)
 		newpath = out_+'/'+item
 		waterImage = add_watermark(src, time,newpath)
-		saveTargetData(waterImage, newpath)
+	# 	saveTargetData(waterImage, newpath)
+ #    print('file_path = ', file_path) 
+	# data = read_image_file_rb('/Users/jimbo/Desktop/test/IMG_2549.HEIC.heic')
+ #    print('data = ', data)
+	
+
+
+
 
 
 if __name__ == '__main__':
