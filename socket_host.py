@@ -5,7 +5,7 @@ import threading
 import time
 
 HOST='127.0.0.1'
-PORT=9997
+PORT=5967
 bufsize = 1024
 address = (HOST,PORT)
 

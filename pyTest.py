@@ -878,4 +878,15 @@
 # datetime.datetime.now
 # print(datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=timestamp))
 
-print("hello")
+import os, io
+import struct
+
+with open("C:\\Users\\Administrator\\Documents\\pyTest\\test.dat", "rb") as f:
+	da = f.read()
+	print(struct.calcsize('@20s2d'))
+	li = struct.unpack('@20s2d',da)
+
+	print(li)
+	name = li[0].split(b'\x00', 1)[0] #\x00 是16进制的 \0的意思
+	print(name)
+	print(name.decode())

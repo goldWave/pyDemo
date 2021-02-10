@@ -3,7 +3,7 @@
 import socket
 
 HOST='127.0.0.1'
-PORT=9997
+PORT=5967
 bufsize = 1024
 address = (HOST,PORT) 
 
@@ -17,14 +17,18 @@ is_exit_all = False
 
 while True:
 	x = str(input("Please enter an str: "))
-	# print(b'x)
+	
+	print("input:" + x)
 	if x == 'exit':
 		break;
 
 	if x == 'exitall':
 		is_exit_all = True
 		break;
-	
+		
+	if x == '' or x == "\n":
+		x = "empty"
+
 	s.send(bytes(x, encoding='utf-8'))
 	print((s.recv(bufsize)).decode('utf-8'))
 
