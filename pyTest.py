@@ -1,3 +1,4 @@
+# encoding=utf8
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3.8
  
@@ -881,12 +882,28 @@
 import os, io
 import struct
 
-with open("C:\\Users\\Administrator\\Documents\\pyTest\\test.dat", "rb") as f:
-	da = f.read()
-	print(struct.calcsize('@20s2d'))
-	li = struct.unpack('@20s2d',da)
+# with open("C:\\Users\\Administrator\\Documents\\pyTest\\test.dat", "rb") as f:
+# 	data = f.read()
+# 	print(struct.calcsize('@20s2d'))
+# 	_list = struct.unpack('@20s2d',data)
 
-	print(li)
-	name = li[0].split(b'\x00', 1)[0] #\x00 是16进制的 \0的意思
-	print(name)
-	print(name.decode())
+# 	print(_list)
+# 	#>>> (b'this is text.\x00\xbc#\xff\xff\xff\xff', 99.4444, 33.2490905)
+# 	name = _list[0].split(b'\x00', 1)[0] #\x00 是16进制的 \0的意思
+# 	print(name)
+# 	#>>> b'this is text.'
+# 	print(name.decode())
+# 	#>>> this is text.
+
+# print(a)
+# a.decode(chare)
+print('fdsj奋斗')
+print(b'\xc2\xb5'.decode('utf-8'))
+
+# print(a.decode('utf-8'))
+# b = a.encode('ascii', errors='ignore').decode("utf-8")
+# print(b)
+
+from googletrans import Translator
+translator = Translator()
+print(translator.translate('星期日').text)
