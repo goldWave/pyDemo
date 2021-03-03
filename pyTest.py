@@ -897,8 +897,8 @@ import struct
 
 # print(a)
 # a.decode(chare)
-print('fdsj奋斗')
-print(b'\xc2\xb5'.decode('utf-8'))
+# print('fdsj奋斗')
+# print(b'\xc2\xb5'.decode('utf-8'))
 
 # print(a.decode('utf-8'))
 # b = a.encode('ascii', errors='ignore').decode("utf-8")
