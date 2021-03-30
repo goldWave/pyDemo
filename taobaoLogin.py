@@ -9,7 +9,7 @@ class taobao(object):
 	"""docstring for taobao"""
 	def __init__(self):
 		super(taobao, self).__init__()
-		self.driverPath = 'C:\\Users\\jimbo\\Documents\\document\\pythonDemo\\driver\\chromedriver_win32\\chromedriver.exe'
+		self.driverPath = 'D:\\pythonDemo\\driver\\chromedriver_win32\\chromedriver.exe'
 		self.domain = 'http://www.taobao.com'
 		self.browser = webdriver.Chrome(self.driverPath)
 		self.browser.maximize_window()

@@ -83,14 +83,12 @@ class JBTrans(object):
 
 		# 写入excel
 		# 参数对应 行, 列, 值
-		# worksheet.write(0,0, label = 'theeeis is test')
 		index = 0;
 		for line in self._allOriginal:
 			# a = line.decode()
 			_ma = line.split("=\"")
 			if len(_ma) > 1:
 				origin = "\"" + _ma[1];
-				# self._list.append(origin)
 				worksheet.write(index,0, label = _ma[0])
 				worksheet.write(index,1, label = origin)
 				index = index + 1

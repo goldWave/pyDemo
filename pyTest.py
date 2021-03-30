@@ -879,8 +879,8 @@
 # datetime.datetime.now
 # print(datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=timestamp))
 
-import os, io
-import struct
+# import os, io
+# import struct
 
 # with open("C:\\Users\\Administrator\\Documents\\pyTest\\test.dat", "rb") as f:
 # 	data = f.read()
@@ -904,6 +904,13 @@ import struct
 # b = a.encode('ascii', errors='ignore').decode("utf-8")
 # print(b)
 
-from googletrans import Translator
-translator = Translator()
-print(translator.translate('星期日').text)
+# from googletrans import Translator
+# translator = Translator()
+# print(translator.translate('星期日').text)
+
+import sort
+
+input_num = [50, 123, 543, 187, 49, 30, 0, 2, 11, 100]
+# print("原始数据： " , input_num)
+a = sort.bubble_sort(input_num)
+print(a)
