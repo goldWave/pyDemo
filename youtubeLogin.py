@@ -1,29 +1,98 @@
 # coding = utf-8
 
 import os, time, sys
+import urllib.parse as up
+import argparse
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.wait import WebDriverWait
 
-
 class youtube(object):
-	"""docstring for taobao"""
+	"""docstring for youtube"""
 	def __init__(self):
 		super(youtube, self).__init__()
-		self.driverPath = 'D:\\pythonDemo\\driver\\chromedriver_win32\\chromedriver.exe'
+		self.isHeadless = True
+		fullPath = sys.executable
+		fullPath = os.path.split(fullPath)[0]
+		fullPath = os.path.join(fullPath, "chromedriver.exe")
+		if os.path.exists(fullPath):
+			self.driverPath = fullPath
+		else:
+			self.driverPath = "D:\\pythonDemo\\driver\\chromedriver_win32\\chromedriver.exe"
+
+		if os.path.exists(self.driverPath) == False:
+			sys.stderr("chromedriver.exe not found")
+			exit()
+		print(self.driverPath)
 		self.domain = 'https://accounts.google.com'
-		self.browser = webdriver.Chrome(self.driverPath)
-		# self.browser.maximize_window()
+		options = webdriver.ChromeOptions()
+		# co.headless = True  # 设置浏览器为无头模式
+		options.add_argument('--headless')
+		options.add_argument('--no-sandbox')
+		options.add_argument('--disable-dev-shm-usage')
+		if self.isHeadless == True:
+			self.browser = webdriver.Chrome(self.driverPath, options=options)
+		else:
+			self.browser = webdriver.Chrome(self.driverPath)
+
+		self.browser.maximize_window()
 		self.browser.implicitly_wait(5)
-		self.userName = 'ren_jinbo@163.com'
-		self.userPassword = 'renjinbo_123'
-		self.actionChain = ActionChains(self.browser)
+		# self.userName = 'ren_jinbo@163.com'
+		# self.userPassword = 'renjinbo_123_123'
 		self.yCode = ""
 
-	def open_youtube(self):
+		parser = argparse.ArgumentParser(description='manual to this script')
+		parser.add_argument("-E", type=str, default="", help='input email')
+		parser.add_argument("-P", type=str, default='',help='input password')
+		args = parser.parse_args()
+		self.userName = args.E
+		self.userPassword = args.P
+		if self.userName == "" or self.userPassword == "":
+			sys.stderr("----not input email or password--------")
+			self.browser.quit()
+			exit()
+
+	def write_page(self, _name):
+		with open(_name ,'wb') as f:
+			f.write(self.browser.page_source.encode("gbk", "ignore")) # 忽略非法字符
+
+
+	def open_youtube_headless(self):
 		self.browser.get('https://accounts.google.com/o/oauth2/v2/auth?client_id=775513731180-rc0mrf2dno2bumtf7f6chfs3uh44ur0a.apps.googleusercontent.com&scope=https://www.googleapis.com/auth/youtube&email&response_type=code&redirect_uri=http://localhost')
-		self.browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[1]/div/form/span/section/div/div/div[1]/div/div[1]/div/div[1]/input').send_keys(self.userName)
+
+		self.browser.save_screenshot('C:\\Users\\Administrator\\Desktop\\test.png')
+		# self.browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[1]/div/form/span/section/div/div/div[1]/div/div[1]/div/div[1]/input').send_keys(self.userName)
+		element = self.browser.find_element_by_id('Email').send_keys(self.userName)
+
+		element = self.browser.find_element_by_id('next').click()
+	
+		self.browser.find_element_by_id('password').send_keys(self.userPassword)
+		#点击密码用户下一步
+		element = self.browser.find_element("id","submit").click()
+		#选择channel
+		element = self.browser.find_element_by_xpath('/html/body/div/div[3]/div[1]/div/ol/li[1]/a').click()
+		# 点击信任账户 允许
+		time.sleep(2)
+		element = self.browser.find_element_by_xpath('/html/body/div[1]/div[2]/div[1]/div/div[2]/div/div/form/button[1]').click()
+		time.sleep(2)
+		print(self.browser.current_url)
+		current_url = self.browser.current_url
+		if current_url.startswith('http://localhost'):
+			self.yCode = current_url.split("code=")[1].split('&')[0].replace('#','')
+			print(self.yCode)
+
+	def open_youtube(self):
+		if self.isHeadless == True:
+			self.open_youtube_headless()
+			return
+		self.browser.get('https://accounts.google.com/o/oauth2/v2/auth?client_id=775513731180-rc0mrf2dno2bumtf7f6chfs3uh44ur0a.apps.googleusercontent.com&scope=https://www.googleapis.com/auth/youtube&email&response_type=code&redirect_uri=http://localhost')
+		time.sleep(2)
+		self.write_page()
+		self.browser.save_screenshot('C:\\Users\\Administrator\\Desktop\\test.png')
+		# self.browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[1]/div/form/span/section/div/div/div[1]/div/div[1]/div/div[1]/input').send_keys(self.userName)
+		element = self.browser.find_element_by_id('identifierId').send_keys(self.userName)
+		# return
 		#点击email用户下一步
 		element = self.browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[2]/div/div[1]/div/div/button').click()
 		self.browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[1]/div/form/span/section/div/div/div[1]/div[1]/div/div/div/div/div[1]/div/div[1]/input').send_keys(self.userPassword)
@@ -33,19 +102,16 @@ class youtube(object):
 		element = self.browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[1]/div/form/span/section/div/div/div/div/ul/li[1]/div').click()
 		# 点击信任账户 允许
 		element = self.browser.find_element_by_class_name('VfPpkd-RLmnJb').click()
-		element = self.browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[2]/div/div[1]/div/div/button/div[2]').click()
 		time.sleep(2)
 		print(self.browser.current_url)
 		current_url = self.browser.current_url
 		if current_url.startswith('http://localhost'):
 			self.yCode = current_url.split("code=")[1].split('&')[0].replace('#','')
 			print(self.yCode)
-	
-		self.browser.quit()
-		# exit()
-
+			
 	def request_token(self):
-		self.yCode = "4/0AY0e-g6iXLfL0fKhGpOePKjBpmUMMhrQU5dIyFCkILXpCrNLRjJRxFUNQDMsqQZ9m_Csvg"
+		self.yCode = up.unquote(self.yCode)
+		# self.yCode = "4/0AY0e-g6iXLfL0fKhGpOePKjBpmUMMhrQU5dIyFCkILXpCrNLRjJRxFUNQDMsqQZ9m_Csvg"
 		if self.yCode == "":
 			print("code is empty")
 			return
@@ -66,24 +132,21 @@ class youtube(object):
 		    # ('redirect_uri', 'http://127.0.0.1:64777/oauth2/callback/google'),
 		    ('redirect_uri', 'http://localhost'),
 		)
-		print(params)
+		# print(params)
 		response = requests.post('https://www.googleapis.com/oauth2/v4/token', headers=headers, params=params)
-		print(response.status_code)
+		# print(response.status_code)
 		print(response.text)
 		if response.status_code == 200:
-			json1 = eval(response.text)
-			print(type(json1))
-			print(json1)
+			pass
+			# json1 = eval(response.text)
+			# print(type(json1))
+			# print(json1)
 		else:
 			print("error with request token")
-		sys.stdout.write('jimbo is good')
-		
+		# sys.stdout.write('jimbo is good')
+
 if __name__ == '__main__':
-	
 	yb = youtube()
-	# yb.open_youtube()
+	yb.open_youtube()
+	yb.browser.quit()
 	yb.request_token()
-	exit()
-
-
-	
