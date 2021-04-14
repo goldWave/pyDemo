@@ -27,7 +27,6 @@ class youtube(object):
 		print(self.driverPath)
 		self.domain = 'https://accounts.google.com'
 		options = webdriver.ChromeOptions()
-		# co.headless = True  # 设置浏览器为无头模式
 		options.add_argument('--headless')
 		options.add_argument('--no-sandbox')
 		options.add_argument('--disable-dev-shm-usage')
@@ -38,8 +37,6 @@ class youtube(object):
 
 		self.browser.maximize_window()
 		self.browser.implicitly_wait(5)
-		# self.userName = 'ren_jinbo@163.com'
-		# self.userPassword = 'renjinbo_123_123'
 		self.yCode = ""
 
 		parser = argparse.ArgumentParser(description='manual to this script')
@@ -129,24 +126,19 @@ class youtube(object):
 		    ('client_secret', '2-EoB0ZlZbwrbkLR_VoW3hB0'),
 		    ('code', self.yCode),
 		    ('grant_type', 'authorization_code'),
-		    # ('redirect_uri', 'http://127.0.0.1:64777/oauth2/callback/google'),
 		    ('redirect_uri', 'http://localhost'),
 		)
-		# print(params)
+		print(params)
 		response = requests.post('https://www.googleapis.com/oauth2/v4/token', headers=headers, params=params)
 		# print(response.status_code)
 		print(response.text)
 		if response.status_code == 200:
 			pass
-			# json1 = eval(response.text)
-			# print(type(json1))
-			# print(json1)
 		else:
 			print("error with request token")
-		# sys.stdout.write('jimbo is good')
 
 if __name__ == '__main__':
 	yb = youtube()
-	yb.open_youtube()
-	yb.browser.quit()
+	# yb.open_youtube()
+	# yb.browser.quit()
 	yb.request_token()

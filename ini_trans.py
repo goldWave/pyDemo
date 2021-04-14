@@ -10,6 +10,12 @@ dir_trans_key = "D:\\licecap\\translate_f.txt"
 dir_trans_all = "D:\\licecap\\translate_all.txt"
 dir_excel = "D:\\licecap\\Excel_test.xls"
 
+def wirteToFile(_dir2, _list):
+	with open(_dir2, 'w', encoding='utf-8') as fp:
+		fp.truncate()
+		fp.writelines(_list)
+
+
 class JBTrans(object):
 	"""docstring for JBTrans"""
 	def __init__(self):
@@ -17,11 +23,6 @@ class JBTrans(object):
 		
 		self._list=[]
 		self._allOriginal=""
-
-	def wirteToFile(self):
-		with open(dir2, 'w', encoding='utf-8') as fp:
-			fp.truncate()
-			fp.writelines(self._list)
 
 	def getValue(self):
 		with open (dir, 'r', encoding='UTF-8') as f:
@@ -102,7 +103,7 @@ class JBTrans(object):
 if __name__ == '__main__':
 	classTr = JBTrans()
 	classTr.getValue()
-	# classTr.wirteToFile()
+	# wirteToFile(classTr.dir2, classTr._list)
 	# classTr.transKeys()
 	classTr.createExcel()
 
