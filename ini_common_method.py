@@ -1,12 +1,40 @@
 # coding = utf-8
 
 import os
+from time import ctime, sleep
 
 dir_all_file = "D:\\licecap\\all_file.txt"
+dir_i_file = "D:\\licecap\\i_file.txt"
 dir_checked = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism"
 
-def findAllCheckFile() -> list:
+def findAllCheckFile_i() -> list:
 	""" 获取所有的 cpp h 之类的文件列表 """
+	_allFiles = list()
+	if os.path.exists(dir_i_file):
+		with open(dir_i_file, 'r', encoding='utf-8') as f:
+			allLines = f.readlines()
+			for x in allLines:
+				x = x.strip('\n')
+				_allFiles.append(x)
+		return _allFiles
+
+	index = 0
+	for root, lists, files in os.walk(dir_checked):
+		for file in files:
+			if os.path.splitext(file)[1] in ['.i']:
+				# print(root + "=====" + file)
+				_allFiles.append(root+"\\"+file)
+
+	with open(dir_i_file, 'w', encoding='utf-8') as fp:
+		fp.truncate()
+		for x in _allFiles:
+			fp.write(x)
+			fp.write('\n')
+
+	return _allFiles
+
+def findAllCheckFile() -> list:
+	""" 获取所有的 .i 之类的文件列表 """
 	_allFiles = list()
 	if os.path.exists(dir_all_file):
 		with open(dir_all_file, 'r', encoding='utf-8') as f:
@@ -31,7 +59,6 @@ def findAllCheckFile() -> list:
 
 	return _allFiles
 
-
 def getINIKeyValues(dir) -> list:
 	""" 获取所有的  ini 文件的key 列表"""
 	with open (dir, 'r', encoding='UTF-8') as f:
@@ -46,7 +73,7 @@ def getINIKeyValues(dir) -> list:
 		return _list
 
 
-def openAndCheckUsedData(fileList, keyList, isMacro=False) -> list:
+def openAndCheckUsedData(fileList, keyList, isMacro=False, printProgress=False) -> list:
 	"""
 	fileList = 所有文件的路径
 	keyList = 查找的key
@@ -56,20 +83,30 @@ def openAndCheckUsedData(fileList, keyList, isMacro=False) -> list:
 
 	allCount = len(fileList)
 	# _notUsed = keyList
+	index = 1
+
 	for file in fileList:
-		# print(file)
+		if printProgress == True:
+			print(str(index) + "/" + str(allCount) + file)
+			index = index + 1
+		print('DONE AT--start:', ctime())
 		with open(file, 'r', encoding='utf-8') as f:
+			print('DONE AT--open:', ctime())
 			allLine = f.readlines()
-			strLine = ",".join(allLine)
+			# strLine = ",".join(allLine)
+			print('DONE AT--join:', ctime())
 			for i in range(len(keyList) - 1, -1, -1):
 				_key = keyList[i]
 				if isMacro:
 					if _key in strLine:
 						keyList.remove(_key)
-
 				else:
+					if ('" "' in strLine):
+						strLine = strLine.replace('" "', '');
 					if ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
 						keyList.remove(_key)
+
+		print('DONE AT--over:', ctime())
 
 	return keyList.copy()
 
