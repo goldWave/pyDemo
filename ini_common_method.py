@@ -2,6 +2,7 @@
 
 import os
 from time import ctime, sleep
+import threading
 
 dir_all_file = "D:\\licecap\\all_file.txt"
 dir_i_file = "D:\\licecap\\i_file.txt"
@@ -72,6 +73,36 @@ def getINIKeyValues(dir) -> list:
 				_list.append(_ma[0])
 		return _list
 
+def openAndCheckUsedData1(fileList, keyList, isMacro=False, printProgress=False) -> list:
+	"""
+	fileList = 所有文件的路径
+	keyList = 查找的key
+	isMacro = key 是否是宏
+	return 没有使用的key
+	"""
+	key_channel_header = 'Channels.'
+	allCount = len(fileList)
+	# _notUsed = keyList
+	for file in fileList:
+		# print(file)
+		with open(file, 'r', encoding='utf-8') as f:
+			allLine = f.readlines()
+			strLine = ",".join(allLine)
+			strLine = strLine.replace('" "', '');
+			for i in range(len(keyList) - 1, -1, -1):
+				_key = keyList[i]
+				if isMacro:
+					if _key in strLine:
+						keyList.remove(_key)
+
+				else:
+					_copyKey = _key
+					if _copyKey.startswith("key_channel_header") and ('CHANNELS_TR(' + _copyKey.replace(key_channel_header,'') + ')') in strLine:
+						keyList.remove(_key)
+					elif ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
+						keyList.remove(_key)
+
+	return keyList.copy()
 
 def openAndCheckUsedData(fileList, keyList, isMacro=False, printProgress=False) -> list:
 	"""
@@ -80,35 +111,79 @@ def openAndCheckUsedData(fileList, keyList, isMacro=False, printProgress=False) 
 	isMacro = key 是否是宏
 	return 没有使用的key
 	"""
-
-	allCount = len(fileList)
-	# _notUsed = keyList
-	index = 1
-
-	for file in fileList:
+	keyDic = {}
+	for x in keyList:
+		keyDic[x] = 0
+	
+	# allCount = len(fileList)
+	
+	def threadOpen(_file, isMacro, printProgress):
+		global _index
+		global allCount
+		# for file in fileList:
+		sem.acquire()
 		if printProgress == True:
-			print(str(index) + "/" + str(allCount) + file)
-			index = index + 1
-		print('DONE AT--start:', ctime())
-		with open(file, 'r', encoding='utf-8') as f:
-			print('DONE AT--open:', ctime())
+			# print(str(index) + "/" + str(allCount) +"  "+ _file)
+			# _index = _index + 1
+			print(_file)
+		key_channel_header = 'Channels.'
+
+		# print('DONE AT--start:', ctime())
+		with open(_file, 'r', encoding='utf-8') as f:
+			# print('DONE AT--open:', ctime())
 			allLine = f.readlines()
-			# strLine = ",".join(allLine)
-			print('DONE AT--join:', ctime())
-			for i in range(len(keyList) - 1, -1, -1):
-				_key = keyList[i]
+			strLine = ",".join(allLine)
+			strLine = strLine.replace('" "', '');
+			# with open("D:\\licecap\\tttt.txt", 'r+', encoding='utf-8') as f1:
+			# 	f1.write(strLine)
+
+			# print('DONE AT--join:', ctime())
+			for _key in keyDic:
+				if keyDic[_key] > 0:
+					continue
+				# _key = keyList[i]
 				if isMacro:
 					if _key in strLine:
-						keyList.remove(_key)
+						# keyList.remove(_key)
+						lock.acquire()
+						keyDic[_key] = keyDic[_key] + 1
+						lock.release()
 				else:
-					if ('" "' in strLine):
-						strLine = strLine.replace('" "', '');
-					if ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
-						keyList.remove(_key)
+					_copyKey = _key
+					if _copyKey.startswith("key_channel_header") and ('CHANNELS_TR(' + _copyKey.replace(key_channel_header,'') + ')') in strLine:
+						lock.acquire()
+						keyDic[_key] = keyDic[_key] + 1
+						lock.release()
+					elif ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
+						# keyList.remove(_key)
+						lock.acquire()
+						keyDic[_key] = keyDic[_key] + 1
+						lock.release()
+		# if printProgress == True:
+		# 	print('DONE AT--over:', ctime())
+		sem.release()
 
-		print('DONE AT--over:', ctime())
 
-	return keyList.copy()
+
+	sem=threading.Semaphore(10)
+	lock=threading.Lock()   #将锁内的代码串行化
+	# _notUsed = keyList
+	_index = 1
+	l=[]
+	for _file in fileList:
+		t=threading.Thread(target=threadOpen,args=(_file,isMacro,printProgress,))
+		t.start()
+		l.append(t)
+
+	for t in l:
+		t.join()
+
+	_fileList = []	
+	for _key in keyDic:
+		if keyDic[_key] == 0:
+			_fileList.append(_key)		
+	return _fileList.copy()
+
 
 def removeMacroFileNotUsedKey(_path, keyList):
 	"""传入宏文件路径，和 需要删除的宏key"""

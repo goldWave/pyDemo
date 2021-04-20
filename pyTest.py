@@ -980,3 +980,8 @@ def main():
  
 if __name__ == '__main__':
     main()
+
+    st = '3333'
+    st1 = st
+    st = "eee"
+    print(st + st1)
