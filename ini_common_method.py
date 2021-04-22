@@ -3,6 +3,8 @@
 import os
 from time import ctime, sleep
 import threading
+import xlrd
+import xlwt
 
 dir_all_file = "D:\\licecap\\all_file.txt"
 dir_i_file = "D:\\licecap\\i_file.txt"
@@ -60,7 +62,7 @@ def findAllCheckFile() -> list:
 
 	return _allFiles
 
-def getINIKeyValues(dir) -> list:
+def getINIKeys(dir) -> list:
 	""" 获取所有的  ini 文件的key 列表"""
 	with open (dir, 'r', encoding='UTF-8') as f:
 		lines = f.readlines()
@@ -72,6 +74,20 @@ def getINIKeyValues(dir) -> list:
 				# _dict[_ma[0]] = origin
 				_list.append(_ma[0])
 		return _list
+
+def getINIKeyValues(dir) -> list:
+	""" 获取所有的  ini 文件的key value 的双重数组"""
+	_keys = list()
+	_values = list()
+	with open (dir, 'r', encoding='UTF-8') as f:
+		lines = f.readlines()
+		for line in lines:
+			_ma = line.split("=\"")
+			if len(_ma) > 1:
+				_keys.append(_ma[0])
+				_values.append("\"" + _ma[1])
+	return _keys, _values
+
 
 def openAndCheckUsedData1(fileList, keyList, isMacro=False, printProgress=False) -> list:
 	"""
@@ -243,3 +259,150 @@ def deleteKeysInINIFiles(fileList, keyList):
 					continue
 
 				f.write(line)
+
+
+def getKeyValueFromExcel(_ex_path, _sheetName, _ValueKey, _keyName="KEY") -> dict:
+	""" 
+	获取 excel  表的键值对
+	_ex_path： excel 路径
+	_sheetName： sheet naame
+	_ValueKey： 需要取值的value 的第一行名字
+	_keyName： key 的第一行名字
+	"""
+	# print(_ex_path)
+	workbook = xlrd.open_workbook(_ex_path)
+	sheet1_object = workbook.sheet_by_name(sheet_name=_sheetName)
+	
+	# 获取sheet1中的有效行数
+	nrows = sheet1_object.nrows
+	_backDic = dict()
+	# 获取sheet1中的有效列数
+	ncols = sheet1_object.ncols
+	_keyIndex = -1
+	_valueIndex = -1
+	for _clos in range(0,ncols):
+		cell_info = sheet1_object.cell_value(rowx=0, colx=_clos)
+		if cell_info == _keyName:
+			_keyIndex = _clos
+		elif cell_info == _ValueKey:
+			_valueIndex = _clos
+
+
+	if _keyIndex == -1 or _valueIndex == -1:
+		print("-------------error  index not found--------------")
+		return _backDic
+
+	for _index in range(1,nrows):
+		_key = sheet1_object.cell_value(rowx=_index, colx=_keyIndex)
+		_value = sheet1_object.cell_value(rowx=_index, colx=_valueIndex)
+		if _key == "" or _value == "":
+			continue
+		_backDic[_key] = _value
+	return _backDic
+
+def writeINIKeyToExistFile(dir, _dic):
+	""" 
+	将 key value 写进已经存在的 ini 文件中
+	dir： ini 路径
+	_dic： 需要写入的 key value 的字典
+	"""
+	with open (dir, 'r+', encoding='UTF-8') as f:
+		lines = f.readlines()
+		f.seek(0)
+		f.truncate()
+		for line in lines:
+			_ma = line.split("=\"")
+			# print(_ma)
+			# print(len(_ma))
+			if len(_ma) > 1:
+				_key = _ma[0]
+				_replaceValue = ""
+				if _dic.__contains__(_key):
+					_replaceValue = _dic[_key]
+				
+				if _replaceValue != "":
+					# print(_key)
+					line = _key + '="' + _replaceValue + '"\n'
+					_dic.pop(_key)
+			f.write(line)
+
+		for k,v in _dic.items():
+			line = k + '="' + v + '"\n'
+			f.write(line)
+
+
+def writeCompareKeyToExcel(_dir, _names, _keys):
+	_set = set()
+	for x in _keys:
+		for _subKey in x:
+			_set.add(_subKey)
+	_set = sorted(_set)
+	for x in _set:
+		print(x)
+	if os.path.exists(_dir):
+		os.remove(_dir)
+	# 创建一个workbook 设置编码
+	workbook = xlwt.Workbook(encoding = 'utf-8')
+	# 创建一个worksheet
+	worksheet = workbook.add_sheet('First')
+
+	# 设置冻结窗口
+	# 设置冻结为真
+	worksheet.set_panes_frozen('1')
+	# 水平冻结
+	worksheet.set_horz_split_pos(1)
+	# 垂直冻结
+	worksheet.set_vert_split_pos(1)
+	worksheet.col(0).width = 12000 
+
+	# 写入excel
+	# 参数对应 行, 列, 值
+	_allIndex  = 0
+	worksheet.write(0,0, label = 'KEY')
+
+	#写入所有 key
+	_wirteDic = {}
+	for x in _set:
+		_allIndex = _allIndex+1
+		worksheet.write(_allIndex,0, label = x)
+		_wirteDic[str(_allIndex)] = str(x)
+
+	#写入 每列的 名字
+	for i  in range(0,len(_names)):
+		st = xlwt.easyxf('pattern: pattern solid;')
+		alignment = xlwt.Alignment()
+		st.pattern.pattern_fore_colour = 1 #1 白色
+		alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
+		st.alignment = alignment
+		worksheet.write(0,i+1, _names[i], st)
+		worksheet.col(i+1).width = 3000
+
+	def is_contain_key(_list, _key) -> bool:
+		for x in _list:
+			if x == _key:
+				return True
+		return False
+
+	#行数
+	for _index in range(1,_allIndex+1):
+		#key 的字符串
+		_key = _wirteDic[str(_index)]
+
+		#取对应行数的key是否存在
+		for i in range(0,len(_keys)):
+			if is_contain_key(_keys[i], _key) == False:
+				st = xlwt.easyxf('pattern: pattern solid;')
+				st.pattern.pattern_fore_colour = 51 #51 是橘黄色
+				alignment = xlwt.Alignment()
+				alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
+				st.alignment = alignment
+				worksheet.write(_index,i+1, "X", st)
+
+	badBG = xlwt.Pattern()
+	badBG.pattern = badBG.SOLID_PATTERN
+	badBG.pattern_fore_colour = 3
+
+	badFontStyle = xlwt.XFStyle()
+	badFontStyle.pattern = badBG
+	# 保存Excel_test
+	workbook.save(_dir)

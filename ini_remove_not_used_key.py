@@ -1,7 +1,7 @@
 # coding = utf-8
 
 import os
-from ini_common_method import getINIKeyValues
+from ini_common_method import getINIKeys
 from ini_common_method import findAllCheckFile
 from ini_common_method import findAllCheckFile_i
 from ini_common_method import openAndCheckUsedData
@@ -13,12 +13,12 @@ s_ini_paths = ["C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\m
 
 if __name__ == '__main__':
 	# #keys 
-	_allKeys = getINIKeyValues(s_ini_paths[3])
+	_allKeys = getINIKeys(s_ini_paths[3])
 
 	for i in range(len(_allKeys) - 1, -1, -1):
 		_key = _allKeys[i]
-		# if _key.startswith('Channels.'):
-		# 	_allKeys.remove(_key)
+		if _key.startswith('Channels.'):
+			_allKeys.remove(_key)
 	_li = findAllCheckFile()
 
 	_list_i = findAllCheckFile_i()
