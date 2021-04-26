@@ -1,42 +1,73 @@
 # coding = utf-8
 
-import os
-from ini_common_method import getINIKeys
-from ini_common_method import findAllCheckFile
-from ini_common_method import findAllCheckFile_i
-from ini_common_method import openAndCheckUsedData
-from ini_common_method import openAndCheckUsedData1
-from ini_common_method import deleteKeysInINIFiles
+import os, time
+from ini_common_method import *
 from time import ctime, sleep
+import  multiprocessing as mp
 
 s_ini_paths = ["C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\en-US.ini", "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\id-ID.ini","C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\ko-KR.ini","C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\pt-BR.ini"]
 
+def get_testKeys(_list) -> list:
+	""" 获取所有的 cpp h 之类的文件列表 """
+	s_path_test = "D:\\licecap\\test_keys.txt"
+	_allKeys = list()
+	if os.path.exists(s_path_test):
+		with open(s_path_test, 'r', encoding='utf-8') as f:
+			allLines = f.readlines()
+			for x in allLines:
+				x = x.strip('\n')
+				_allKeys.append(x)
+		return _allKeys
+	print("1")
+	with open(s_path_test, 'w', encoding='utf-8') as fp:
+		fp.truncate()
+		for x in _list:
+			fp.write(x)
+			fp.write('\n')
+
+	return _list
+
+
 if __name__ == '__main__':
-	# #keys 
 	_allKeys = getINIKeys(s_ini_paths[3])
 
 	for i in range(len(_allKeys) - 1, -1, -1):
 		_key = _allKeys[i]
 		if _key.startswith('Channels.'):
 			_allKeys.remove(_key)
+
 	_li = findAllCheckFile()
 
 	_list_i = findAllCheckFile_i()
-
-	#long long time to 检查key 是否被使用
-	print('DONE AT--over:', ctime())
-	# _notUsed_key = ['Basic.Settings.Advanced.Hotkeys.NeverDisableHotkeys']
-	# _notUsed_key = ['Basic.Settings.Output.Simple.Warn.Lossless.Title','Basic.Settings.Output.Simple.Encoder.Software','Basic.Settings.Output.Simple.Encoder.Hardware.QSV','Basic.Settings.Output.Simple.Encoder.Hardware.AMD','Basic.Settings.Output.Simple.Encoder.Hardware.NVENC','Basic.Settings.Output.Simple.Encoder.SoftwareLowCPU','Basic.Settings.Output.VideoBitrate','Basic.Settings.Output.AudioBitrate,Basic.Settings.Output.Reconnect']
-	# _notUsed_key = ['Basic.Settings.Output.Simple.Encoder.Software', 'Basic.Settings.Output.Simple.Encoder.Hardware.QSV', 'Basic.Settings.Output.Simple.Encoder.Hardware.AMD', 'Basic.Settings.Output.Simple.Encoder.Hardware.NVENC', 'Basic.Settings.Output.Simple.Encoder.SoftwareLowCPU', 'Basic.Settings.Output.Adv.FFmpeg.SaveFilter.Common', 'Basic.Settings.Output.Adv.FFmpeg.SaveFilter.All', 'Basic.Settings.Video.DisableAeroWindows', 'Basic.Settings.Audio.MultiChannelWarning.Enabled']
-	# _notUsed_key = ['Channels.add','Channels.URLCopiedToClipboard','Channels.ONline','Channels.OFFline']
-	_notUsed_key = openAndCheckUsedData(_li, _allKeys, False)
-	print('DONE AT--over:', ctime())
+	# _allKeys = _allKeys[0: 92]
+	_notUsed_key = openAndCheckUsedData_Single(_li, _allKeys, False)
+	# _notUsed_key = []
+	# _notUsed_key = get_testKeys(_notUsed_key)
+	# _notUsed_key = _allKeys[0: 922]
 	print("\n-------------------------\n\n")
-	# print(_notUsed_key)
-	# return
-	# _list_i=['C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\build\\main\\PRISMLiveStudio.dir\\Debug\\window-basic-auto-config-test.i']
+	_atartCount = len(_notUsed_key)
+	# _list_i = _list_i[0:20]
+	print(_atartCount +  len(_list_i))
+	# _notUsed_key = openAndCheckUsedData(_list_i, _notUsed_key, False, printProgress=False)
+	# _notUsed_key = openAndCheckUsedData(_list_i, _notUsed_key, False, printProgress=True)
+	# _notUsed_key = openAndCheckUsedData_Single(_list_i, _notUsed_key, False, printProgress=True)
 	_notUsed_key = openAndCheckUsedData(_list_i, _notUsed_key, False, printProgress=True)
+
 	print("\n-------------------------\n\n")
-	print(_notUsed_key)
+	print(len(_notUsed_key))
+	# print(_notUsed_key)
+	# _notUsed_key = ['setting.channel.tabMyChannel', 'broadcast.create.set_photo_open']
 	#删除 未使用的key
-	deleteKeysInINIFiles(s_ini_paths, _notUsed_key)
+	# deleteKeysInINIFiles(s_ini_paths, _notUsed_key)
+
+
+	# _prcess_path = 'C:\\Users\\Administrator\\Desktop\\process.py'
+	_prcess_path = 'C:\\Users\\Administrator\\Desktop\\single.py'
+	with open(_prcess_path, 'w', encoding='utf-8') as f: 
+		f.truncate()
+		_s = str(len(_allKeys))  + '  ->  '  + str(_atartCount) + '  ->  ' + str(len(_notUsed_key))
+		f.write(_s)
+		f.write('\n')
+		for x in _notUsed_key:
+			f.write(x)
+			f.write('\n')

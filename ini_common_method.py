@@ -1,10 +1,11 @@
 # coding = utf-8
 
-import os
+import os, time
 from time import ctime, sleep
 import threading
 import xlrd
 import xlwt
+import multiprocessing as mp
 
 dir_all_file = "D:\\licecap\\all_file.txt"
 dir_i_file = "D:\\licecap\\i_file.txt"
@@ -89,36 +90,59 @@ def getINIKeyValues(dir) -> list:
 	return _keys, _values
 
 
-def openAndCheckUsedData1(fileList, keyList, isMacro=False, printProgress=False) -> list:
+def openAndCheckUsedData_Single(fileList, keyList, isMacro=False, printProgress=False) -> list:
 	"""
 	fileList = 所有文件的路径
 	keyList = 查找的key
 	isMacro = key 是否是宏
 	return 没有使用的key
 	"""
-	key_channel_header = 'Channels.'
-	allCount = len(fileList)
-	# _notUsed = keyList
-	for file in fileList:
-		# print(file)
-		with open(file, 'r', encoding='utf-8') as f:
+	keyDic = {}
+	for x in keyList:
+		keyDic[x] = 0
+		
+	def threadOpen(_file, isMacro, printProgress):
+		global _index
+		global allCount
+		# sem.acquire()
+		if printProgress == True:
+			print(_file)
+		key_channel_header = 'Channels.'
+		t0 = time.time()
+		with open(_file, 'r', encoding='utf-8') as f:
 			allLine = f.readlines()
 			strLine = ",".join(allLine)
 			strLine = strLine.replace('" "', '');
-			for i in range(len(keyList) - 1, -1, -1):
-				_key = keyList[i]
+			word_b = set(strLine.split())
+			for _key in keyDic:  #800 * 3
+				# t0 = time.time()
+				if keyDic[_key] > 0:
+					continue
 				if isMacro:
 					if _key in strLine:
-						keyList.remove(_key)
-
+						keyDic[_key] = keyDic[_key] + 1
 				else:
 					_copyKey = _key
 					if _copyKey.startswith("key_channel_header") and ('CHANNELS_TR(' + _copyKey.replace(key_channel_header,'') + ')') in strLine:
-						keyList.remove(_key)
-					elif ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
-						keyList.remove(_key)
+						keyDic[_key] = keyDic[_key] + 1
+						# "key" or  <string>key</string> or \"key\"
+					elif _key in strLine:
+						if ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
+							keyDic[_key] = keyDic[_key] + 1
+		# if printProgress == True:
+		# 	t1 = time.time()
+		# 	print(str((t1-t0)*1000) + " ms")
 
-	return keyList.copy()
+
+	_index = 1
+	for _file in fileList:
+		threadOpen(_file, isMacro, printProgress)
+
+	_fileList = []	
+	for _key in keyDic:
+		if keyDic[_key] == 0:
+			_fileList.append(_key)		
+	return _fileList.copy()
 
 def openAndCheckUsedData(fileList, keyList, isMacro=False, printProgress=False) -> list:
 	"""
@@ -136,31 +160,24 @@ def openAndCheckUsedData(fileList, keyList, isMacro=False, printProgress=False) 
 	def threadOpen(_file, isMacro, printProgress):
 		global _index
 		global allCount
-		# for file in fileList:
 		sem.acquire()
 		if printProgress == True:
-			# print(str(index) + "/" + str(allCount) +"  "+ _file)
-			# _index = _index + 1
 			print(_file)
 		key_channel_header = 'Channels.'
 
 		# print('DONE AT--start:', ctime())
 		with open(_file, 'r', encoding='utf-8') as f:
-			# print('DONE AT--open:', ctime())
+			if printProgress == True:
+				print(_file + "\t"+ str(threading.get_ident()))
 			allLine = f.readlines()
 			strLine = ",".join(allLine)
 			strLine = strLine.replace('" "', '');
-			# with open("D:\\licecap\\tttt.txt", 'r+', encoding='utf-8') as f1:
-			# 	f1.write(strLine)
-
 			# print('DONE AT--join:', ctime())
 			for _key in keyDic:
 				if keyDic[_key] > 0:
 					continue
-				# _key = keyList[i]
 				if isMacro:
 					if _key in strLine:
-						# keyList.remove(_key)
 						lock.acquire()
 						keyDic[_key] = keyDic[_key] + 1
 						lock.release()
@@ -170,20 +187,15 @@ def openAndCheckUsedData(fileList, keyList, isMacro=False, printProgress=False) 
 						lock.acquire()
 						keyDic[_key] = keyDic[_key] + 1
 						lock.release()
-					elif ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
-						# keyList.remove(_key)
-						lock.acquire()
-						keyDic[_key] = keyDic[_key] + 1
-						lock.release()
-		# if printProgress == True:
-		# 	print('DONE AT--over:', ctime())
-		sem.release()
+					elif _key in strLine:
+						if ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
+							lock.acquire()
+							keyDic[_key] = keyDic[_key] + 1
+							lock.release()
+		sem.release() 
 
-
-
-	sem=threading.Semaphore(10)
+	sem=threading.Semaphore(8)
 	lock=threading.Lock()   #将锁内的代码串行化
-	# _notUsed = keyList
 	_index = 1
 	l=[]
 	for _file in fileList:
@@ -198,6 +210,73 @@ def openAndCheckUsedData(fileList, keyList, isMacro=False, printProgress=False) 
 	for _key in keyDic:
 		if keyDic[_key] == 0:
 			_fileList.append(_key)		
+	return _fileList.copy()
+
+def threadOpen_1(_file, isMacro, printProgress, keyDic, lock):
+		# sem.acquire()
+		# if printProgress == True:
+		# print(_file)
+		key_channel_header = 'Channels.'
+
+		with open(_file, 'r', encoding='utf-8') as f:
+			if printProgress == True:
+				print(_file + "\t"+ str(threading.get_ident()))
+			allLine = f.readlines()
+			strLine = ",".join(allLine)
+			strLine = strLine.replace('" "', '');
+			# print('DONE AT--join:', ctime())
+			for _key in keyDic.keys():
+				if keyDic[_key] > 0:
+					continue
+				if isMacro:
+					if _key in strLine:
+						lock.acquire()
+						keyDic[_key] = keyDic[_key] + 1
+						lock.release()
+				else:
+					_copyKey = _key
+					if _copyKey.startswith("key_channel_header") and ('CHANNELS_TR(' + _copyKey.replace(key_channel_header,'') + ')') in strLine:
+						lock.acquire()
+						keyDic[_key] = keyDic[_key] + 1
+						lock.release()
+					elif _key in strLine:
+						if ('"' + _key + '"' in strLine) or ('<string>'+_key+'</string>' in strLine) or ('\"'+_key+'\"' in strLine):
+							lock.acquire()
+							# print("-------" + _key)
+							keyDic[_key] = keyDic[_key] + 1
+							lock.release()
+		# sem.release()
+
+def openAndCheckUsedData_Process(fileList, keyList, isMacro=False, printProgress=False) -> list:
+	"""
+	fileList = 所有文件的路径
+	keyList = 查找的key
+	isMacro = key 是否是宏
+	return 没有使用的key
+	这里主要的 耗时在 大字符串 搜索 子字符串里面，是cpu 密集型，所有用多进程
+	而python 的锁导致多线程 访问cpu需要串行，所有多线程并没有进行时间优化
+	"""
+	_keyDic = {}
+	for x in keyList:
+		_keyDic[x] = 0
+	
+	_co = mp.cpu_count()
+	# print(_co)
+	p = mp.Pool(_co*2)
+	m = mp.Manager()
+	dic=m.dict(_keyDic)
+	_lock = m.Lock()
+
+	for _file in fileList:
+		p.apply_async(threadOpen_1,args=(_file,isMacro,printProgress,dic, _lock,))
+
+	p.close()
+	p.join()
+
+	_fileList = []	
+	for _key in dic:
+		if dic[_key] == 0:
+			_fileList.append(_key)
 	return _fileList.copy()
 
 

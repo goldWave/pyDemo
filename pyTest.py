@@ -924,64 +924,170 @@
 # print(a)
 
 # -*-coding:utf-8-*-
-from time import ctime, sleep
-import threading
-# import numpy as np
-import collections
+# from time import ctime, sleep
+# import threading
+# # import numpy as np
+# import collections
  
-loops = ['广州', '北京']
-t_list = ['01', '02', '03']
-cldas_sum = collections.deque()
- 
- 
-class MyThread(threading.Thread):
-    def __init__(self, func, args, name=''):
-        threading.Thread.__init__(self)
-        self.name = name
-        self.func = func
-        self.args = args
-        self.result = self.func(*self.args)
- 
-    def get_result(self):
-        try:
-            return self.result
-        except Exception:
-            return None
+# loops = ['广州', '北京']
+# t_list = ['01', '02', '03']
+# cldas_sum = collections.deque()
  
  
-def loop(nloop):
-    for j in t_list:
-        cldas_values = []
-        for k in range(4):
-            cldas_value = nloop + str(k)
-            cldas_values.append(cldas_value)
-        cldas_values.append(j)
-        cldas_values.append(nloop)
-        cldas_sum.append(cldas_values)
-        print(id(cldas_values))
-    #print(cldas_sum)
-    return cldas_sum
+# class MyThread(threading.Thread):
+#     def __init__(self, func, args, name=''):
+#         threading.Thread.__init__(self)
+#         self.name = name
+#         self.func = func
+#         self.args = args
+#         self.result = self.func(*self.args)
+ 
+#     def get_result(self):
+#         try:
+#             return self.result
+#         except Exception:
+#             return None
  
  
-def main():
-    print('start at', ctime())
-    threads = []
-    nloops = range(len(loops))
-    for i in nloops:
-        t = MyThread(loop, (loops[i],), loop.__name__)
-        threads.append(t)
-    for i in nloops:   # start threads 此处并不会执行线程，而是将任务分发到每个线程，同步线程。等同步完成后再开始执行start方法
-        threads[i].start()
-    for i in nloops:   # jion()方法等待线程完成
-        threads[i].join()
-    print(threads[1].get_result())
-    # print('DONE AT:', ctime())
+# def loop(nloop):
+#     for j in t_list:
+#         cldas_values = []
+#         for k in range(4):
+#             cldas_value = nloop + str(k)
+#             cldas_values.append(cldas_value)
+#         cldas_values.append(j)
+#         cldas_values.append(nloop)
+#         cldas_sum.append(cldas_values)
+#         print(id(cldas_values))
+#     #print(cldas_sum)
+#     return cldas_sum
  
  
-if __name__ == '__main__':
-    main()
+# def main():
+#     print('start at', ctime())
+#     threads = []
+#     nloops = range(len(loops))
+#     for i in nloops:
+#         t = MyThread(loop, (loops[i],), loop.__name__)
+#         threads.append(t)
+#     for i in nloops:   # start threads 此处并不会执行线程，而是将任务分发到每个线程，同步线程。等同步完成后再开始执行start方法
+#         threads[i].start()
+#     for i in nloops:   # jion()方法等待线程完成
+#         threads[i].join()
+#     print(threads[1].get_result())
+#     # print('DONE AT:', ctime())
+ 
+ 
+# if __name__ == '__main__':
+#     main()
 
-    st = '3333'
-    st1 = st
-    st = "eee"
-    print(st + st1)
+#     st = '3333'
+#     st1 = st
+#     st = "eee"
+#     print(st + st1)
+
+
+# from multiprocessing import Manager,Process,Lock
+# import os
+# def work(d,lock):
+#     # with lock: #不加锁而操作共享的数据,肯定会出现数据错乱
+#     d['count']-=1
+#     print(d)
+
+# if __name__ == '__main__':
+#     lock=Lock()
+#     with Manager() as m:
+#         dic=m.dict({'count':100})
+#         p_l=[]
+#         for i in range(100):
+#             p=Process(target=work,args=(dic,lock))
+#             p_l.append(p)
+#             p.start()
+#         for p in p_l:
+#             p.join()
+#         print(dic)
+#         #{'count': 94}
+
+import multiprocessing as mp
+import time
+from ini_common_method import *
+
+def get_testKeys(_list) -> list:
+	""" 获取所有的 cpp h 之类的文件列表 """
+	s_path_test = "D:\\licecap\\test_keys.txt"
+	_allKeys = list()
+	if os.path.exists(s_path_test):
+		with open(s_path_test, 'r', encoding='utf-8') as f:
+			allLines = f.readlines()
+			for x in allLines:
+				x = x.strip('\n')
+				_allKeys.append(x)
+		return _allKeys
+	print("1")
+	with open(s_path_test, 'w', encoding='utf-8') as fp:
+		fp.truncate()
+		for x in _list:
+			fp.write(x)
+			fp.write('\n')
+
+	return _list
+
+def job(_dic, l): #传入锁
+	print("---- job")
+	# l.acquire()  #锁住共享变量
+	# for _ in range(10):
+	#     time.sleep(0.1)
+	#     v.value += num
+	#     print(v.value)
+	print(_dic)
+	# _allKeys = 
+	# for x in _dic.keys():
+	# 	# time.sleep(0.1)
+	# 	# v.value += num
+	# 	print(x)
+	# l.release()  #释放共享变量
+
+def multicore():
+	pass
+
+if __name__ == '__main__':
+	_list = get_testKeys([])
+	_list = _list[0:10]
+	_keyDic = {}
+	for x in _list:
+		_keyDic[x] = 0
+
+	l = mp.Lock() #定义锁
+	p = mp.Pool(2)
+	with mp.Manager() as MG:
+		
+		mydict=MG.dict(_keyDic)#主进程与子进程共享这个字典
+		# print(mydict)
+		# p1 = mp.Process(target=job, args=(mydict, l)) 
+		# p2 = mp.Process(target=job, args=(mydict, l))
+		# p1.start()
+		# p2.start()
+		# p1.join()
+		# p2.join()
+		# print(mydict)
+		for i in range(5):
+			p.apply_async(job, args=(mydict, 'l',)) 
+
+		# p.apply_async(job, args=(mydict, l,)) 
+		# p.apply_async(job, args=(mydict, l,))
+		p.close()
+		p.join()
+		print("--")
+
+
+# if __name__ == '__main__':
+# 	print("Parent process %s" % os.getpid())
+# 	
+
+# 	for i in range(6):
+# 		p.apply_async(long_time_task, args=(i,))
+# 		print(i)
+# 	print("Waiting for all subprocesses done...")
+# 	p.close()
+# 	p.join()
+# 	print("All subprocesses done.")
