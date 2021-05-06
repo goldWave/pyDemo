@@ -262,7 +262,8 @@ def openAndCheckUsedData_Process(fileList, keyList, isMacro=False, printProgress
 	
 	_co = mp.cpu_count()
 	# print(_co)
-	p = mp.Pool(_co*2)
+	# p = mp.Pool(_co*2)
+	p = mp.Pool(1000)
 	m = mp.Manager()
 	dic=m.dict(_keyDic)
 	_lock = m.Lock()

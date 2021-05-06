@@ -5,7 +5,7 @@ from ini_common_method import writeINIKeyToExistFile
 # dir_all_file = "D:\\licecap\\all_file.txt"
 dir_common_pre = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale"
 s_key_paths = [{"EN":"en-US.ini"},{"KR":"ko-KR.ini"},{"IND":"id-ID.ini"},{"POR":"pt-BR.ini"}]
-s_excelPath = "D:\\Download\\works\\字符串第四次更新（ui相关）(1).xlsx"
+s_excelPath = "D:\\Download\\第四轮翻译_0428.xlsx"
 
 def getDicKey(_dic) -> str:
 	for k in _dic:

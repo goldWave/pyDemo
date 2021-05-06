@@ -51,23 +51,23 @@ if __name__ == '__main__':
 	# _notUsed_key = openAndCheckUsedData(_list_i, _notUsed_key, False, printProgress=False)
 	# _notUsed_key = openAndCheckUsedData(_list_i, _notUsed_key, False, printProgress=True)
 	# _notUsed_key = openAndCheckUsedData_Single(_list_i, _notUsed_key, False, printProgress=True)
-	_notUsed_key = openAndCheckUsedData(_list_i, _notUsed_key, False, printProgress=True)
-
+	# _notUsed_key = openAndCheckUsedData(_list_i, _notUsed_key, False, printProgress=True)
+	_notUsed_key = openAndCheckUsedData_Process(_list_i, _notUsed_key, False, printProgress=True)
 	print("\n-------------------------\n\n")
 	print(len(_notUsed_key))
 	# print(_notUsed_key)
 	# _notUsed_key = ['setting.channel.tabMyChannel', 'broadcast.create.set_photo_open']
 	#删除 未使用的key
-	# deleteKeysInINIFiles(s_ini_paths, _notUsed_key)
+	deleteKeysInINIFiles(s_ini_paths, _notUsed_key)
 
 
 	# _prcess_path = 'C:\\Users\\Administrator\\Desktop\\process.py'
-	_prcess_path = 'C:\\Users\\Administrator\\Desktop\\single.py'
-	with open(_prcess_path, 'w', encoding='utf-8') as f: 
-		f.truncate()
-		_s = str(len(_allKeys))  + '  ->  '  + str(_atartCount) + '  ->  ' + str(len(_notUsed_key))
-		f.write(_s)
-		f.write('\n')
-		for x in _notUsed_key:
-			f.write(x)
-			f.write('\n')
+	# _prcess_path = 'C:\\Users\\Administrator\\Desktop\\single.py'
+	# with open(_prcess_path, 'w', encoding='utf-8') as f: 
+	# 	f.truncate()
+	# 	_s = str(len(_allKeys))  + '  ->  '  + str(_atartCount) + '  ->  ' + str(len(_notUsed_key))
+	# 	f.write(_s)
+	# 	f.write('\n')
+	# 	for x in _notUsed_key:
+	# 		f.write(x)
+	# 		f.write('\n')
