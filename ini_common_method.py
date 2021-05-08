@@ -7,8 +7,11 @@ import xlrd
 import xlwt
 import multiprocessing as mp
 
-dir_all_file = "D:\\licecap\\all_file.txt"
-dir_i_file = "D:\\licecap\\i_file.txt"
+dir_cache_path = 'D:\\languageCache\\'
+dir_all_file = dir_cache_path + "all_file.txt"
+dir_i_file = dir_cache_path + "i_file.txt"
+dir_ignore_file = dir_cache_path + "ignore_excel_keys.txt"
+
 dir_checked = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism"
 
 def findAllCheckFile_i() -> list:
@@ -80,6 +83,9 @@ def getINIKeyValues(dir) -> list:
 	""" 获取所有的  ini 文件的key value 的双重数组"""
 	_keys = list()
 	_values = list()
+	if os.file.exists(dir) == False:
+		return [], []
+		
 	with open (dir, 'r', encoding='UTF-8') as f:
 		lines = f.readlines()
 		for line in lines:
@@ -88,6 +94,16 @@ def getINIKeyValues(dir) -> list:
 				_keys.append(_ma[0])
 				_values.append("\"" + _ma[1])
 	return _keys, _values
+
+def getINIKeyValuesDict(dir) -> dict:
+	""" 获取所有的  ini 文件的key value 的 字典"""
+	_lists = getINIKeyValues(dir)
+	_keyValueDict = {}
+	_keys = _lists[0]
+	_values = _lists[1]
+	for i in range(0,len(_keys)):
+		_keyValueDict[_keys[i]] = _values[i]
+	return _keyValueDict
 
 
 def openAndCheckUsedData_Single(fileList, keyList, isMacro=False, printProgress=False) -> list:
@@ -410,15 +426,36 @@ def writeINIKeyToExistFile(dir, _dic):
 			line = k + '="' + v + '"\n'
 			f.write(line)
 
+def getExcelIgnoreKeys(_dir=dir_ignore_file) -> set:
+	_list = set()
+	with open (_dir, 'r', encoding='UTF-8') as f:
+		lines = f.readlines()
+		for line in lines:
+			if line.startswith('#') == False:
+				_list.add(line.replace('\n',''))
+	return _list
 
-def writeCompareKeyToExcel(_dir, _names, _keys):
+def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll = False):
+	_ignoreKey = getExcelIgnoreKeys()
+
+	if _isWriteAll == False:
+		for i in range(0,len(_templateDics)):
+			_str = "str" + str(i)
+			_names.append(_str)
+
 	_set = set()
 	for x in _keys:
 		for _subKey in x:
 			_set.add(_subKey)
+	if _isWriteAll == False:
+		for x in _ignoreKey:
+			if x in _set:
+				_set.remove(x)
+
 	_set = sorted(_set)
-	for x in _set:
-		print(x)
+	print(len(_set))
+	# for x in _set:
+	# 	print(x)
 	if os.path.exists(_dir):
 		os.remove(_dir)
 	# 创建一个workbook 设置编码
@@ -436,26 +473,36 @@ def writeCompareKeyToExcel(_dir, _names, _keys):
 	worksheet.col(0).width = 12000 
 
 	# 写入excel
-	# 参数对应 行, 列, 值
+	# 参数对应 Y, X, 值
 	_allIndex  = 0
-	worksheet.write(0,0, label = 'KEY')
-
 	#写入所有 key
 	_wirteDic = {}
 	for x in _set:
 		_allIndex = _allIndex+1
 		worksheet.write(_allIndex,0, label = x)
 		_wirteDic[str(_allIndex)] = str(x)
+		
+	st_white_center = xlwt.easyxf('pattern: pattern solid;')
+	alignment = xlwt.Alignment()
+	st_white_center.pattern.pattern_fore_colour = 1 #1 白色
+	alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
+	st_white_center.alignment = alignment
 
 	#写入 每列的 名字
 	for i  in range(0,len(_names)):
-		st = xlwt.easyxf('pattern: pattern solid;')
-		alignment = xlwt.Alignment()
-		st.pattern.pattern_fore_colour = 1 #1 白色
-		alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
-		st.alignment = alignment
-		worksheet.write(0,i+1, _names[i], st)
-		worksheet.col(i+1).width = 3000
+		worksheet.write(0,i, _names[i], st_white_center)
+
+		_width = 3000;
+		if i == 0:
+			_width = 10000
+
+		if _isWriteAll == True and i != 0:
+			_width = 12000
+		else:
+			if i >= len(_names) - 2 :
+				_width = 30000
+
+		worksheet.col(i).width = _width
 
 	def is_contain_key(_list, _key) -> bool:
 		for x in _list:
@@ -463,20 +510,44 @@ def writeCompareKeyToExcel(_dir, _names, _keys):
 				return True
 		return False
 
-	#行数
+	st_white_left = xlwt.easyxf()
+	alignment = xlwt.Alignment()
+	st_white_left.pattern.pattern_fore_colour = 1 #1 白色
+	alignment.horz = xlwt.Alignment.HORZ_LEFT
+	# alignment.wrap = 1 #自动换行
+	st_white_left.alignment = alignment
+
+	st_orange_center = xlwt.easyxf('pattern: pattern solid;')
+	st_orange_center.pattern.pattern_fore_colour = 51 #51 是橘黄色
+	alignment = xlwt.Alignment()
+	alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
+	st_orange_center.alignment = alignment
+
+	# Y轴
 	for _index in range(1,_allIndex+1):
 		#key 的字符串
 		_key = _wirteDic[str(_index)]
 
+		if _isWriteAll == True:
+			# X轴
+			for i in range(0,len(_templateDics)):
+				_templateDic = _templateDics[i]
+				if _key in _templateDic.keys():
+					worksheet.write(_index, i + 1, _templateDic[_key][1:-2], st_white_left)
+				else:
+					worksheet.write(_index, i + 1, "", st_orange_center)
+			continue
+
 		#取对应行数的key是否存在
 		for i in range(0,len(_keys)):
 			if is_contain_key(_keys[i], _key) == False:
-				st = xlwt.easyxf('pattern: pattern solid;')
-				st.pattern.pattern_fore_colour = 51 #51 是橘黄色
-				alignment = xlwt.Alignment()
-				alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
-				st.alignment = alignment
-				worksheet.write(_index,i+1, "X", st)
+				worksheet.write(_index,i+1, "X", st_orange_center)
+
+		#添加英文和其他文字的的实际参考字符串
+		for i in range(0,len(_templateDics)):
+			_templateDic = _templateDics[i]
+			if _key in _templateDic.keys():
+				worksheet.write(_index, len(_keys) + i + 1, _templateDic[_key][1:-2], st_white_left)
 
 	badBG = xlwt.Pattern()
 	badBG.pattern = badBG.SOLID_PATTERN
@@ -486,3 +557,58 @@ def writeCompareKeyToExcel(_dir, _names, _keys):
 	badFontStyle.pattern = badBG
 	# 保存Excel_test
 	workbook.save(_dir)
+
+
+"""
+#不添加到 比对文本里面去。
+Auth.AuthFailure.Text
+Auth.AuthFailure.Title
+Auth.Authing.Text
+Auth.Authing.Title
+Auth.ChannelFailure.Text
+Auth.ChannelFailure.Title
+Auth.Chat
+Auth.InvalidScope.Text
+Auth.InvalidScope.Title
+Auth.LoadingChannel.Text
+Auth.LoadingChannel.Title
+Auth.StreamInfo
+Basic.AutoConfig.StreamPage.GetStreamKey
+Basic.Settings.Advanced.Network.TCPPacing.Tooltip
+Basic.Settings.Stream.TTVAddon
+Basic.Settings.Stream.TTVAddon.BTTV
+Basic.Settings.Stream.TTVAddon.Both
+Basic.Settings.Stream.TTVAddon.FFZ
+Basic.Settings.Stream.TTVAddon.None
+Bitrate
+Channels.afreeca_tv
+Channels.band
+Channels.custom_rtmp
+Channels.facebook
+Channels.naver_shopping_live
+Channels.naver_tv
+Channels.now
+Channels.twitch
+Channels.vlive
+Channels.wav
+Channels.whale_space
+Channels.youtube
+RestreamAuth.Channels
+Source.ErrorTips.PrismMobile.Error
+TwitchAuth.Feed
+TwitchAuth.Stats
+TwitchAuth.TwoFactorFail.Text
+TwitchAuth.TwoFactorFail.Title
+blacklist.crashed.device.enumerating
+blacklist.crashed.notfound
+login.sign.endStr
+navershopping.liveinfo.notify.fail.alert
+navershopping.liveinfo.notify.fail.directStart
+navershopping.login.fail
+navershopping.no.live.right
+prism.engine.alert.initcrash
+prism.engine.alert.outofmemory
+youtube.privacy.private.only.en
+youtube.privacy.public.only.en
+youtube.privacy.unlisted.only.en
+"""

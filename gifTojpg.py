@@ -84,7 +84,7 @@ def processImage(path):
                 new_frame.paste(last_frame)
             
             new_frame.paste(im, (0,0), im.convert('RGBA'))
-            new_frame.save('D:\\licecap\\%s-%d.png' % (''.join(os.path.basename(path).split('.')[:-1]), i), 'PNG')
+            new_frame.save('D:\\languageCache\\%s-%d.png' % (''.join(os.path.basename(path).split('.')[:-1]), i), 'PNG')
  
             i += 1
             last_frame = new_frame
@@ -94,7 +94,7 @@ def processImage(path):
  
  
 def main():
-    processImage('D:\\licecap\\ggggig.gif')
+    processImage('D:\\languageCache\\ggggig.gif')
     
  
 if __name__ == "__main__":

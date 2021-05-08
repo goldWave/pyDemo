@@ -1,7 +1,7 @@
 import xlwt, os 
 
 def createExcel():
-	_dir = 'D:\\licecap\\compare1.xls'
+	_dir = 'D:\\languageCache\\compare1.xls'
 
 	if os.path.exists(_dir):
 		os.remove(_dir)

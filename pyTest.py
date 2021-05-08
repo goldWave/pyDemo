@@ -1014,7 +1014,7 @@ from ini_common_method import *
 
 def get_testKeys(_list) -> list:
 	""" 获取所有的 cpp h 之类的文件列表 """
-	s_path_test = "D:\\licecap\\test_keys.txt"
+	s_path_test = "D:\\languageCache\\test_keys.txt"
 	_allKeys = list()
 	if os.path.exists(s_path_test):
 		with open(s_path_test, 'r', encoding='utf-8') as f:

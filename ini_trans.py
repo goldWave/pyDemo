@@ -4,11 +4,11 @@ import os
 from googletrans import Translator
 import xlwt 
 
-dir = "D:\\licecap\\en-US.ini"
-dir2 = "D:\\licecap\\en-US_1.txt"
-dir_trans_key = "D:\\licecap\\translate_f.txt"
-dir_trans_all = "D:\\licecap\\translate_all.txt"
-dir_excel = "D:\\licecap\\Excel_test.xls"
+dir = "D:\\languageCache\\en-US.ini"
+dir2 = "D:\\languageCache\\en-US_1.txt"
+dir_trans_key = "D:\\languageCache\\translate_f.txt"
+dir_trans_all = "D:\\languageCache\\translate_all.txt"
+dir_excel = "D:\\languageCache\\Excel_test.xls"
 
 def wirteToFile(_dir2, _list):
 	with open(_dir2, 'w', encoding='utf-8') as fp:
