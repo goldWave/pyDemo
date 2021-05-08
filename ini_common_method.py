@@ -83,7 +83,7 @@ def getINIKeyValues(dir) -> list:
 	""" 获取所有的  ini 文件的key value 的双重数组"""
 	_keys = list()
 	_values = list()
-	if os.file.exists(dir) == False:
+	if os.path.exists(dir) == False:
 		return [], []
 		
 	with open (dir, 'r', encoding='UTF-8') as f:
@@ -428,6 +428,8 @@ def writeINIKeyToExistFile(dir, _dic):
 
 def getExcelIgnoreKeys(_dir=dir_ignore_file) -> set:
 	_list = set()
+	if not os.path.exists(dir_ignore_file):
+		return _list
 	with open (_dir, 'r', encoding='UTF-8') as f:
 		lines = f.readlines()
 		for line in lines:
