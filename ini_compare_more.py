@@ -6,13 +6,14 @@ r"""
 """
 
 from ini_common_method import *
-import os
+import os,glob
 
-s_ini_paths_only = ["en-US.ini", "ja-JP.ini", "id-ID.ini","ko-KR.ini","pt-BR.ini"]
+# s_ini_paths_only = ["en-US.ini", "ja-JP.ini", "id-ID.ini","ko-KR.ini","pt-BR.ini"]
 # s_ini_paths_only = ["en-US.ini","ja-JP.ini"]
 
 dir_common_pre = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\"
-s_ini_paths = [dir_common_pre + x for x in s_ini_paths_only]
+# s_ini_paths = [dir_common_pre + x for x in s_ini_paths_only]
+s_ini_paths = glob.glob(dir_common_pre + "*.ini", recursive=False)
 
 def compare(_base, _list) -> list:
 	_more = list()

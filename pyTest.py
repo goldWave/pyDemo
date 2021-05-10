@@ -1008,76 +1008,76 @@
 #         print(dic)
 #         #{'count': 94}
 
-import multiprocessing as mp
-import time
-from ini_common_method import *
+# import multiprocessing as mp
+# import time
+# from ini_common_method import *
 
-def get_testKeys(_list) -> list:
-	""" 获取所有的 cpp h 之类的文件列表 """
-	s_path_test = "D:\\languageCache\\test_keys.txt"
-	_allKeys = list()
-	if os.path.exists(s_path_test):
-		with open(s_path_test, 'r', encoding='utf-8') as f:
-			allLines = f.readlines()
-			for x in allLines:
-				x = x.strip('\n')
-				_allKeys.append(x)
-		return _allKeys
-	print("1")
-	with open(s_path_test, 'w', encoding='utf-8') as fp:
-		fp.truncate()
-		for x in _list:
-			fp.write(x)
-			fp.write('\n')
+# def get_testKeys(_list) -> list:
+# 	""" 获取所有的 cpp h 之类的文件列表 """
+# 	s_path_test = "D:\\languageCache\\test_keys.txt"
+# 	_allKeys = list()
+# 	if os.path.exists(s_path_test):
+# 		with open(s_path_test, 'r', encoding='utf-8') as f:
+# 			allLines = f.readlines()
+# 			for x in allLines:
+# 				x = x.strip('\n')
+# 				_allKeys.append(x)
+# 		return _allKeys
+# 	print("1")
+# 	with open(s_path_test, 'w', encoding='utf-8') as fp:
+# 		fp.truncate()
+# 		for x in _list:
+# 			fp.write(x)
+# 			fp.write('\n')
 
-	return _list
+# 	return _list
 
-def job(_dic, l): #传入锁
-	print("---- job")
-	# l.acquire()  #锁住共享变量
-	# for _ in range(10):
-	#     time.sleep(0.1)
-	#     v.value += num
-	#     print(v.value)
-	print(_dic)
-	# _allKeys = 
-	# for x in _dic.keys():
-	# 	# time.sleep(0.1)
-	# 	# v.value += num
-	# 	print(x)
-	# l.release()  #释放共享变量
+# def job(_dic, l): #传入锁
+# 	print("---- job")
+# 	# l.acquire()  #锁住共享变量
+# 	# for _ in range(10):
+# 	#     time.sleep(0.1)
+# 	#     v.value += num
+# 	#     print(v.value)
+# 	print(_dic)
+# 	# _allKeys = 
+# 	# for x in _dic.keys():
+# 	# 	# time.sleep(0.1)
+# 	# 	# v.value += num
+# 	# 	print(x)
+# 	# l.release()  #释放共享变量
 
-def multicore():
-	pass
+# def multicore():
+# 	pass
 
-if __name__ == '__main__':
-	_list = get_testKeys([])
-	_list = _list[0:10]
-	_keyDic = {}
-	for x in _list:
-		_keyDic[x] = 0
+# if __name__ == '__main__':
+# 	_list = get_testKeys([])
+# 	_list = _list[0:10]
+# 	_keyDic = {}
+# 	for x in _list:
+# 		_keyDic[x] = 0
 
-	l = mp.Lock() #定义锁
-	p = mp.Pool(2)
-	with mp.Manager() as MG:
+# 	l = mp.Lock() #定义锁
+# 	p = mp.Pool(2)
+# 	with mp.Manager() as MG:
 		
-		mydict=MG.dict(_keyDic)#主进程与子进程共享这个字典
-		# print(mydict)
-		# p1 = mp.Process(target=job, args=(mydict, l)) 
-		# p2 = mp.Process(target=job, args=(mydict, l))
-		# p1.start()
-		# p2.start()
-		# p1.join()
-		# p2.join()
-		# print(mydict)
-		for i in range(5):
-			p.apply_async(job, args=(mydict, 'l',)) 
+# 		mydict=MG.dict(_keyDic)#主进程与子进程共享这个字典
+# 		# print(mydict)
+# 		# p1 = mp.Process(target=job, args=(mydict, l)) 
+# 		# p2 = mp.Process(target=job, args=(mydict, l))
+# 		# p1.start()
+# 		# p2.start()
+# 		# p1.join()
+# 		# p2.join()
+# 		# print(mydict)
+# 		for i in range(5):
+# 			p.apply_async(job, args=(mydict, 'l',)) 
 
-		# p.apply_async(job, args=(mydict, l,)) 
-		# p.apply_async(job, args=(mydict, l,))
-		p.close()
-		p.join()
-		print("--")
+# 		# p.apply_async(job, args=(mydict, l,)) 
+# 		# p.apply_async(job, args=(mydict, l,))
+# 		p.close()
+# 		p.join()
+# 		print("--")
 
 
 # if __name__ == '__main__':
@@ -1091,3 +1091,18 @@ if __name__ == '__main__':
 # 	p.close()
 # 	p.join()
 # 	print("All subprocesses done.")
+
+def get_origin_str(_str):
+	""" 去除末尾的\n 和双引号 """
+	if _str.startswith('"'):
+		_str = _str[1:]
+	if _str.endswith('\n'):
+		_str = _str[:-1]
+	if _str.endswith('"'):
+		_str = _str[:-1]
+	return _str
+
+_tStr = '"zhe this is a"\n'
+
+print(get_origin_str(_tStr))
+print(_tStr)

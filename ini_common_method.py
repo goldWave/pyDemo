@@ -525,6 +525,16 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 	alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
 	st_orange_center.alignment = alignment
 
+	def get_origin_str(_str):
+		""" 去除首位双引号  和  末尾的\n"""
+		if _str.startswith('"'):
+			_str = _str[1:]
+		if _str.endswith('\n'):
+			_str = _str[:-1]
+		if _str.endswith('"'):
+			_str = _str[:-1]
+		return _str
+
 	# Y轴
 	for _index in range(1,_allIndex+1):
 		#key 的字符串
@@ -535,7 +545,7 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 			for i in range(0,len(_templateDics)):
 				_templateDic = _templateDics[i]
 				if _key in _templateDic.keys():
-					worksheet.write(_index, i + 1, _templateDic[_key][1:-2], st_white_left)
+					worksheet.write(_index, i + 1, get_origin_str(_templateDic[_key]), st_white_left)
 				else:
 					worksheet.write(_index, i + 1, "", st_orange_center)
 			continue
@@ -549,7 +559,7 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 		for i in range(0,len(_templateDics)):
 			_templateDic = _templateDics[i]
 			if _key in _templateDic.keys():
-				worksheet.write(_index, len(_keys) + i + 1, _templateDic[_key][1:-2], st_white_left)
+				worksheet.write(_index, len(_keys) + i + 1, get_origin_str(_templateDic[_key]), st_white_left)
 
 	badBG = xlwt.Pattern()
 	badBG.pattern = badBG.SOLID_PATTERN
@@ -559,7 +569,6 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 	badFontStyle.pattern = badBG
 	# 保存Excel_test
 	workbook.save(_dir)
-
 
 """
 #不添加到 比对文本里面去。
