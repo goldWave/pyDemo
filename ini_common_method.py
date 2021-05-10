@@ -420,11 +420,17 @@ def writeINIKeyToExistFile(dir, _dic):
 					# print(_key)
 					line = _key + '="' + _replaceValue + '"\n'
 					_dic.pop(_key)
+				if _replaceValue.count('"') != _replaceValue.count('\\"'):
+					print("value的双引号转义存在问题：" + _key + "=" + _replaceValuev)
 			f.write(line)
 
 		for k,v in _dic.items():
 			line = k + '="' + v + '"\n'
 			f.write(line)
+
+			if v.count('"') != v.count('\\"'):
+				print("value的双引号转义存在问题：" + k + "=" + v)
+			
 
 def getExcelIgnoreKeys(_dir=dir_ignore_file) -> set:
 	_list = set()
