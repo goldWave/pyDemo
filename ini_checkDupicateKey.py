@@ -31,18 +31,29 @@ def check_Double_quotes():
 	""" 
 	检查 双引号是否转义
 	"""
+	dir_common_pre = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\"
+	os.chdir(dir_common_pre)
+	s_ini_paths = glob.glob("**/*.ini", recursive=True)
+
 	for x in s_ini_paths:
-		print("\n\n\n\n\n" +x + "\n -----\n")
+		# print("\n\n\n\n\n" +x + "\n -----\n")
 		_lists = getINIKeyValues(x)
 
 		_keys = _lists[0]
 		_values = _lists[1]
 		for i in range(0,len(_keys)):
 			_teStr = _values[i]
-			_teStr = _teStr[1:-2]
+			_teStr = _teStr[1:]
+			if _teStr.endswith('\n'):
+				_teStr = _teStr[:-1]
+			if not _teStr.endswith('"'):
+				print(x  + "        "+ _keys[i] + "=" + _values[i])
+			else:
+				_teStr = _teStr[:-1]
+				
 			if _teStr.count('"') != _teStr.count('\\"'):
-				print(_keys[i] + "=" + _values[i])
+				print(x  + "        "+ _keys[i] + "=" + _values[i])
 
 if __name__ == '__main__':
-	# check_Double_quotes()
-	check_dup()
+	check_Double_quotes()
+	# check_dup()

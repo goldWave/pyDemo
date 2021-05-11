@@ -576,6 +576,25 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 	# 保存Excel_test
 	workbook.save(_dir)
 
+	
+def findAllCheckFile_inis(_dir_all_pre="C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\"):
+	""" 获取所有的 ini 文件的上级目录 """
+	_dir_all_pre = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\"
+	_allFiles = set()
+	_li = list()
+
+	for root, lists, files in os.walk(_dir_all_pre):
+		if 'build\\' in root:
+			continue
+		for file in files:
+			if file == 'locale.ini':
+				continue
+			if os.path.splitext(file)[1] in ['.ini']:
+				_allFiles.add(root)
+
+	_li = [(x.replace(_dir_all_pre, "xls_").replace('\\', '_'), x)  for x in _allFiles]
+	return _li
+
 """
 #不添加到 比对文本里面去。
 Auth.AuthFailure.Text

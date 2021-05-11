@@ -7,25 +7,27 @@ import os,glob
 from ini_common_method import *
 
 
-# s_ini_paths_only = ["en-US.ini", "ja-JP.ini", "id-ID.ini","ko-KR.ini","pt-BR.ini"]
+s_ini_paths_only = ["en-US.ini", "ja-JP.ini", "id-ID.ini","ko-KR.ini","pt-BR.ini"]
 dir_common_pre = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\"
-# s_ini_paths = [dir_common_pre + x for x in s_ini_paths_only]
-s_ini_paths = glob.glob(dir_common_pre + "*.ini", recursive=False)
+s_ini_paths = [dir_common_pre + x for x in s_ini_paths_only]
+# s_ini_paths = glob.glob(dir_common_pre + "*.ini", recursive=False)
 
-def writeDiffToExcel():
+def writeDiffToExcel(_path =s_ini_paths , _excel_name = "language"):
 	#多个ini 互相比较，将 差异 的地方输出到 excel
-
 	_name = ["KEYS"]
-	for x in s_ini_paths:
+	for x in _path:
 		_name.append(x.split("\\")[-1])
 
 	_dics = []
-	for x in s_ini_paths:
+	for x in _path:
 		_dics.append(getINIKeyValuesDict(x))
-
+	print(_path)
 	_mores = [_dic.keys() for _dic in _dics]
 	print(len(_mores[0]))
-	writeCompareKeyToExcel("D:\\languageCache\\all_language.xls", _name, _mores, _dics, _isWriteAll=True)
+	writeCompareKeyToExcel("D:\\py_T\\" + _excel_name + ".xls", _name, _mores, _dics, _isWriteAll=True)
 
 if __name__ == '__main__':
-	writeDiffToExcel()
+	_list =  findAllCheckFile_inis("C:\\Users\\Administrator\\source\\PRISMLiveStudio\\")
+	for name, path in _list:
+		_paths = [path+"\\" + x for x in s_ini_paths_only]
+		writeDiffToExcel(_paths, name)
