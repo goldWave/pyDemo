@@ -68,6 +68,8 @@ def findAllCheckFile() -> list:
 
 def getINIKeys(dir) -> list:
 	""" 获取所有的  ini 文件的key 列表"""
+	if os.path.exists(dir) == False:
+		return []
 	with open (dir, 'r', encoding='UTF-8') as f:
 		lines = f.readlines()
 		_list = list()
@@ -79,8 +81,11 @@ def getINIKeys(dir) -> list:
 				_list.append(_ma[0])
 		return _list
 
-def getINIKeyValues(dir) -> list:
-	""" 获取所有的  ini 文件的key value 的双重数组"""
+def getINIKeyValues(dir, _isRemoveN = False) -> list:
+	""" 
+	获取所有的  ini 文件的key value 的双重数组
+	param:_isRemoveN 是否移除结尾的换行和 首尾的 双引号
+	"""
 	_keys = list()
 	_values = list()
 	if os.path.exists(dir) == False:
@@ -92,12 +97,15 @@ def getINIKeyValues(dir) -> list:
 			_ma = line.split("=\"")
 			if len(_ma) > 1:
 				_keys.append(_ma[0])
-				_values.append("\"" + _ma[1])
+				if _isRemoveN == True:
+					_values.append(get_origin_str(_ma[1]))
+				else:
+					_values.append("\"" + _ma[1])
 	return _keys, _values
 
-def getINIKeyValuesDict(dir) -> dict:
+def getINIKeyValuesDict(dir, _isRemoveN = False) -> dict:
 	""" 获取所有的  ini 文件的key value 的 字典"""
-	_lists = getINIKeyValues(dir)
+	_lists = getINIKeyValues(dir, _isRemoveN=_isRemoveN)
 	_keyValueDict = {}
 	_keys = _lists[0]
 	_values = _lists[1]
@@ -444,12 +452,13 @@ def getExcelIgnoreKeys(_dir=dir_ignore_file) -> set:
 	return _list
 
 def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll = False):
-	_ignoreKey = getExcelIgnoreKeys()
-
+	# _ignoreKey = getExcelIgnoreKeys()
+	_ignoreKey = []
+	_subNames = _names[1:]
+	# print(_subNames)
 	if _isWriteAll == False:
-		for i in range(0,len(_templateDics)):
-			_str = "str" + str(i)
-			_names.append(_str)
+		for i in _subNames:
+			_names.append(i)
 
 	_set = set()
 	for x in _keys:
@@ -462,6 +471,8 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 
 	_set = sorted(_set)
 	print(len(_set))
+	if len(_set) == 0:
+		return
 	# for x in _set:
 	# 	print(x)
 	if os.path.exists(_dir):
@@ -507,8 +518,8 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 		if _isWriteAll == True and i != 0:
 			_width = 12000
 		else:
-			if i >= len(_names) - 2 :
-				_width = 30000
+			if i >= len(_names) - len(_templateDics) :
+				_width = 12000
 
 		worksheet.col(i).width = _width
 
@@ -530,16 +541,6 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 	alignment = xlwt.Alignment()
 	alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
 	st_orange_center.alignment = alignment
-
-	def get_origin_str(_str):
-		""" 去除首位双引号  和  末尾的\n"""
-		if _str.startswith('"'):
-			_str = _str[1:]
-		if _str.endswith('\n'):
-			_str = _str[:-1]
-		if _str.endswith('"'):
-			_str = _str[:-1]
-		return _str
 
 	# Y轴
 	for _index in range(1,_allIndex+1):
@@ -576,10 +577,120 @@ def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll 
 	# 保存Excel_test
 	workbook.save(_dir)
 
+
+def writeDuplicateValuesToExcel(_dir, _names, _keys, _templateDics = []):
+
+	for i in range(0,len(_templateDics)):
+		_str = "str" + str(i)
+		_names.append(_str)
+
+	# for x in _set:
+	# 	print(x)
+	if os.path.exists(_dir):
+		os.remove(_dir)
+	# 创建一个workbook 设置编码
+	workbook = xlwt.Workbook(encoding = 'utf-8')
+	# 创建一个worksheet
+	worksheet = workbook.add_sheet('First')
+
+	# 设置冻结窗口
+	# 设置冻结为真
+	worksheet.set_panes_frozen('1')
+	# 水平冻结
+	worksheet.set_horz_split_pos(1)
+	# 垂直冻结
+	worksheet.set_vert_split_pos(1)
+	_spaceStr = '----seprate------'
+
+	st_green_center = xlwt.easyxf('pattern: pattern solid;')
+	st_green_center.pattern.pattern_fore_colour = 30 #绿色
+	# 写入excel
+	# 参数对应 Y, X, 值
+	_allIndex  = 0
+	#写入所有 key
+	_wirteDic = {}
+	for x in _keys:
+		for _key in x:
+			_allIndex = _allIndex+1
+			worksheet.write(_allIndex,0, label = _key)
+			_wirteDic[str(_allIndex)] = str(_key)
+		_allIndex += 1
+		_wirteDic[str(_allIndex)] = _spaceStr
+		worksheet.write(_allIndex, 0, "", st_green_center)
+		worksheet.row(_allIndex).height_mismatch = True
+		worksheet.row(_allIndex).height = 256*4
+
+	st_white_center = xlwt.easyxf('pattern: pattern solid;')
+	alignment = xlwt.Alignment()
+	st_white_center.pattern.pattern_fore_colour = 1 #1 白色
+	alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
+	st_white_center.alignment = alignment
+
+	#写入 X轴第一排 的 名字
+	for i  in range(0,len(_names)):
+		worksheet.write(0,i, _names[i], st_white_center)
+		if i == 0:
+			_width = 8000
+		else:
+			_width = 10000
+
+		worksheet.col(i).width = _width
+
+	st_white_left = xlwt.easyxf()
+	alignment = xlwt.Alignment()
+	st_white_left.pattern.pattern_fore_colour = 1 #1 白色
+	alignment.horz = xlwt.Alignment.HORZ_LEFT
+	# alignment.wrap = 1 #自动换行
+	st_white_left.alignment = alignment
+
+	st_orange_center = xlwt.easyxf('pattern: pattern solid;')
+	st_orange_center.pattern.pattern_fore_colour = 51 #51 是橘黄色
+	alignment = xlwt.Alignment()
+	alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
+	st_orange_center.alignment = alignment
+
+	def getIndex(_lists, _key):
+		for i in range(0,len(_lists)):
+			if _lists[i] == _key:
+				return i
+		return -1
+
+	# Y轴
+	for _index in range(1, _allIndex+1):
+		#key 的字符串
+		_key = _wirteDic[str(_index)]
+		# X轴
+		for i in range(0,len(_templateDics)):
+			_templateKeys = _templateDics[i][0]
+			_templateValues = _templateDics[i][1]
+			if _key in _templateKeys:
+				worksheet.write(_index, i + 1, get_origin_str(_templateValues[getIndex(_templateKeys, _key)]), st_white_left)
+			elif _key == _spaceStr:
+				worksheet.write(_index, i + 1, "", st_green_center)
+			else:
+				worksheet.write(_index, i + 1, "", st_orange_center)
+
+	badBG = xlwt.Pattern()
+	badBG.pattern = badBG.SOLID_PATTERN
+	badBG.pattern_fore_colour = 3
+
+	badFontStyle = xlwt.XFStyle()
+	badFontStyle.pattern = badBG
+	# 保存Excel_test
+	workbook.save(_dir)
+
+def get_origin_str(_str):
+	""" 去除首位双引号  和  末尾的\n"""
+	if _str.startswith('"'):
+		_str = _str[1:]
+	if _str.endswith('\n'):
+		_str = _str[:-1]
+	if _str.endswith('"'):
+		_str = _str[:-1]
+	return _str
 	
 def findAllCheckFile_inis(_dir_all_pre="C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\"):
 	""" 获取所有的 ini 文件的上级目录 """
-	_dir_all_pre = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\"
 	_allFiles = set()
 	_li = list()
 

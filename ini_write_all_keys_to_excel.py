@@ -14,20 +14,22 @@ s_ini_paths = [dir_common_pre + x for x in s_ini_paths_only]
 
 def writeDiffToExcel(_path =s_ini_paths , _excel_name = "language"):
 	#多个ini 互相比较，将 差异 的地方输出到 excel
+	global _set
 	_name = ["KEYS"]
 	for x in _path:
 		_name.append(x.split("\\")[-1])
-
+		_set.add(x.split("\\")[-1])
 	_dics = []
 	for x in _path:
 		_dics.append(getINIKeyValuesDict(x))
-	print(_path)
 	_mores = [_dic.keys() for _dic in _dics]
-	print(len(_mores[0]))
 	writeCompareKeyToExcel("D:\\py_T\\" + _excel_name + ".xls", _name, _mores, _dics, _isWriteAll=True)
 
 if __name__ == '__main__':
 	_list =  findAllCheckFile_inis("C:\\Users\\Administrator\\source\\PRISMLiveStudio\\")
+	_set = set()
 	for name, path in _list:
 		_paths = [path+"\\" + x for x in s_ini_paths_only]
 		writeDiffToExcel(_paths, name)
+
+	# print(_set)

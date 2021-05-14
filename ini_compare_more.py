@@ -8,12 +8,12 @@ r"""
 from ini_common_method import *
 import os,glob
 
-# s_ini_paths_only = ["en-US.ini", "ja-JP.ini", "id-ID.ini","ko-KR.ini","pt-BR.ini"]
+s_ini_paths_only = ["en-US.ini", "ja-JP.ini", "id-ID.ini","ko-KR.ini","pt-BR.ini"]
 # s_ini_paths_only = ["en-US.ini","ja-JP.ini"]
 
 dir_common_pre = "C:\\Users\\Administrator\\source\\PRISMLiveStudio\\src\\prism\\main\\data\\locale\\"
 # s_ini_paths = [dir_common_pre + x for x in s_ini_paths_only]
-s_ini_paths = glob.glob(dir_common_pre + "*.ini", recursive=False)
+# s_ini_paths = glob.glob(dir_common_pre + "*.ini", recursive=False)
 
 def compare(_base, _list) -> list:
 	_more = list()
@@ -45,16 +45,20 @@ def CheckDiff(_paths) -> list:
 
 	return _mores
 
-def writeDiffToExcel():
+def writeDiffToExcel(_paths, _name):
 	#多个ini 互相比较，将 差异 的地方输出到 excel
-	_mores = CheckDiff(s_ini_paths)
-	_name = ["KEYS"]
-	for x in s_ini_paths:
-		_name.append(x.split("\\")[-1])
+	_mores = CheckDiff(_paths)
+	_names = ["KEYS"]
+	for x in _paths:
+		_names.append(x.split("\\")[-1])
 	_dics = list()
-	_dics.append(getINIKeyValuesDict(s_ini_paths[0]))
-	_dics.append(getINIKeyValuesDict(s_ini_paths[3]))
-	writeCompareKeyToExcel("D:\\languageCache\\compare_language.xls", _name, _mores, _dics)
+
+	for x in _paths:
+		_dics.append(getINIKeyValuesDict(x))
+		# print(_dics)
+		# print(x)
+
+	writeCompareKeyToExcel("D:\\py_T\\compare_language_" +  _name + ".xls", _names, _mores, _dics)
 
 def removeMoreEnglishKey():
 	#和english 比较，将多出的字符串删除掉
@@ -65,5 +69,15 @@ def removeMoreEnglishKey():
 
 if __name__ == '__main__':
 
-	writeDiffToExcel()
+	# writeDiffToExcel()
 	# removeMoreEnglishKey()
+
+	_list =  findAllCheckFile_inis("C:\\Users\\Administrator\\source\\PRISMLiveStudio\\")
+	_set = set()
+	for name, path in _list:
+		_paths = [path+"\\" + x for x in s_ini_paths_only]
+		writeDiffToExcel(_paths, name)
+		# print(name)
+		# print(_paths)
+		# break
+

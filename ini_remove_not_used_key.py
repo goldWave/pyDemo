@@ -61,15 +61,3 @@ if __name__ == '__main__':
 	# _notUsed_key = ['setting.channel.tabMyChannel', 'broadcast.create.set_photo_open']
 	#删除 未使用的key
 	deleteKeysInINIFiles(s_ini_paths, _notUsed_key)
-
-
-	# _prcess_path = 'C:\\Users\\Administrator\\Desktop\\process.py'
-	# _prcess_path = 'C:\\Users\\Administrator\\Desktop\\single.py'
-	# with open(_prcess_path, 'w', encoding='utf-8') as f: 
-	# 	f.truncate()
-	# 	_s = str(len(_allKeys))  + '  ->  '  + str(_atartCount) + '  ->  ' + str(len(_notUsed_key))
-	# 	f.write(_s)
-	# 	f.write('\n')
-	# 	for x in _notUsed_key:
-	# 		f.write(x)
-	# 		f.write('\n')
