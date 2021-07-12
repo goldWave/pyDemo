@@ -58,7 +58,38 @@ def writeDiffToExcel(_paths, _name):
 		# print(_dics)
 		# print(x)
 
-	writeCompareKeyToExcel("D:\\py_T\\compare_language_" +  _name + ".xls", _names, _mores, _dics)
+	writeCompareKeyToExcel("D:\\py_T\\compare_language_" +  _name + ".xls", _names, _mores, _dics, _isContainIgnore=True)
+
+def checkMoreParam(_paths, _name):
+	#多个ini 互相比较，检查 %1 %2 数量是否相同
+	_names = []
+	for x in _paths:
+		_names.append(x.split("\\")[-1])
+
+	_dics = list()
+	for x in _paths:
+		_dics.append(getINIKeyValuesDict(x))
+
+	_isPrintFile = False
+	_checkString = ['%1', '%2', '%3','%4','%5']
+	_fromIndex = 0
+	_i_keys = _dics[_fromIndex].keys()
+	for j in range(0,len(_dics)):	
+		_isCo = False
+		for i_key in _i_keys:	
+			if i_key in _dics[j].keys():
+				for _subStr in _checkString:
+					if not _subStr in _dics[_fromIndex][i_key]:
+						continue
+					if not _subStr  in _dics[j][i_key]:
+						if _isPrintFile == False:
+							print("\n\n\n" + _paths[0].replace(_names[0],''))
+							_isPrintFile = True
+						if _isCo == False:
+							print("\n" + _names[_fromIndex]+ "   compare " + _names[j])
+							_isCo = True
+						print(_subStr + " missing---------- "+ i_key)
+		
 
 def removeMoreEnglishKey():
 	#和english 比较，将多出的字符串删除掉
@@ -73,11 +104,12 @@ if __name__ == '__main__':
 	# removeMoreEnglishKey()
 
 	_list =  findAllCheckFile_inis("C:\\Users\\Administrator\\source\\PRISMLiveStudio\\")
+	# _list =  findAllCheckFile_inis(dir_common_pre)
 	_set = set()
+	# print(_list)
 	for name, path in _list:
 		_paths = [path+"\\" + x for x in s_ini_paths_only]
-		writeDiffToExcel(_paths, name)
-		# print(name)
-		# print(_paths)
-		# break
+		# writeDiffToExcel(_paths, name)
+		
+		checkMoreParam(_paths, name)
 

@@ -133,6 +133,9 @@ def openAndCheckUsedData_Single(fileList, keyList, isMacro=False, printProgress=
 			print(_file)
 		key_channel_header = 'Channels.'
 		t0 = time.time()
+		print(_file)
+		if 'src\\prism\\sub\\cam-effect\\src\\jsonWrapper\\cjson' in _file:
+			return
 		with open(_file, 'r', encoding='utf-8') as f:
 			allLine = f.readlines()
 			strLine = ",".join(allLine)
@@ -404,6 +407,36 @@ def getKeyValueFromExcel(_ex_path, _sheetName, _ValueKey, _keyName="KEY") -> dic
 		_backDic[_key] = _value
 	return _backDic
 
+def getAllKeyValueFromExcel(_ex_path, _sheetName="Sheet1") -> list:
+	""" 
+	获取 excel 所有的值，以 list 包含元祖返回
+	_ex_path： excel 路径
+	_sheetName： sheet naame
+	_ValueKey： 需要取值的value 的第一行名字
+	_keyName： key 的第一行名字
+	"""
+	# print(_ex_path)
+	workbook = xlrd.open_workbook(_ex_path)
+	sheet1_object = workbook.sheet_by_name(sheet_name=_sheetName)
+	
+	# 获取sheet1中的有效行数
+	nrows = sheet1_object.nrows
+
+	# 获取sheet1中的有效列数
+	n_xs = sheet1_object.ncols
+	_list = []
+
+	for _index in range(1,nrows):
+		_subList = []
+		for x in range(0, n_xs):
+			_key = sheet1_object.cell_value(rowx=_index, colx=x)
+			# print(_key)
+			_subList.append(_key)
+		_list.append(_subList)
+		# break
+	return _list
+
+
 def writeINIKeyToExistFile(dir, _dic):
 	""" 
 	将 key value 写进已经存在的 ini 文件中
@@ -451,9 +484,10 @@ def getExcelIgnoreKeys(_dir=dir_ignore_file) -> set:
 				_list.add(line.replace('\n',''))
 	return _list
 
-def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll = False):
-	# _ignoreKey = getExcelIgnoreKeys()
+def writeCompareKeyToExcel(_dir, _names, _keys, _templateDics = [], _isWriteAll = False, _isContainIgnore=True):
 	_ignoreKey = []
+	if _isContainIgnore == False:
+		_ignoreKey = getExcelIgnoreKeys()
 	_subNames = _names[1:]
 	# print(_subNames)
 	if _isWriteAll == False:
@@ -679,6 +713,31 @@ def writeDuplicateValuesToExcel(_dir, _names, _keys, _templateDics = []):
 	# 保存Excel_test
 	workbook.save(_dir)
 
+
+def writeKeyNotUsed_excel(_dir, _allKeys, _notUsedKeys):
+	if os.path.exists(_dir):
+		os.remove(_dir)
+	# 创建一个workbook 设置编码
+	workbook = xlwt.Workbook(encoding = 'utf-8')
+	# 创建一个worksheet
+	worksheet = workbook.add_sheet('First')
+
+	st_orange_center = xlwt.easyxf('pattern: pattern solid;')
+	st_orange_center.pattern.pattern_fore_colour = 51 #51 是橘黄色
+	alignment = xlwt.Alignment()
+	alignment.horz = xlwt.Alignment.HORZ_CENTER #水平居中
+	st_orange_center.alignment = alignment
+	_allIndex = 0
+	for _key in _allKeys:
+		# for _key in x:
+		_allIndex = _allIndex+1
+		worksheet.write(_allIndex,0, label = _key)
+		if _key in _notUsedKeys:
+			worksheet.write(_allIndex, 1, "X", st_orange_center)
+
+	# 保存Excel_test
+	workbook.save(_dir)
+
 def get_origin_str(_str):
 	""" 去除首位双引号  和  末尾的\n"""
 	if _str.startswith('"'):
@@ -695,7 +754,7 @@ def findAllCheckFile_inis(_dir_all_pre="C:\\Users\\Administrator\\source\\PRISML
 	_li = list()
 
 	for root, lists, files in os.walk(_dir_all_pre):
-		if 'build\\' in root:
+		if 'build\\' in root or 'bin\\Debug\\' in root:
 			continue
 		for file in files:
 			if file == 'locale.ini':
@@ -705,6 +764,9 @@ def findAllCheckFile_inis(_dir_all_pre="C:\\Users\\Administrator\\source\\PRISML
 
 	_li = [(x.replace(_dir_all_pre, "xls_").replace('\\', '_'), x)  for x in _allFiles]
 	return _li
+
+
+	
 
 """
 #不添加到 比对文本里面去。

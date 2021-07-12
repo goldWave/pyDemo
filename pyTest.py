@@ -1092,17 +1092,67 @@
 # 	p.join()
 # 	print("All subprocesses done.")
 
-def get_origin_str(_str):
-	""" 去除末尾的\n 和双引号 """
-	if _str.startswith('"'):
-		_str = _str[1:]
-	if _str.endswith('\n'):
-		_str = _str[:-1]
-	if _str.endswith('"'):
-		_str = _str[:-1]
-	return _str
+import os, time, glob, sys
+# from ini_common_method import *
 
-_tStr = '"zhe this is a"\n'
+# def get_all_compare_keys(_dir):
+# 	_allFiles = list()
+# 	if os.path.exists(_dir):
+# 		with open(_dir, 'r', encoding='utf-8') as f:
+# 			allLines = f.readlines()
+# 			for x in allLines:
+# 				x = x.strip('\n')
+# 				_allFiles.append(x)
+# 		return _allFiles
 
-print(get_origin_str(_tStr))
-print(_tStr)
+# _allKeys = get_all_compare_keys('D:\\languageCache\\cache.txt')
+# _notKeys = get_all_compare_keys('D:\\languageCache\\temp_not_used.txt')
+# writeKeyNotUsed_excel('D:\\languageCache\\not_used.xls', _allKeys, _notKeys)
+
+
+# _path = "C:\\Users\\Administrator\\Desktop\\1\\100168.txt"
+# _succpath = "C:\\Users\\Administrator\\Desktop\\1\\succ.txt"
+# _is = []
+
+# with open(_path, 'r', encoding='utf-8') as f:
+# 	allLines = f.readlines()
+# 	for x in allLines:
+# 		x1 = x.replace('\n','')
+# 		# print(x1)
+# 		if x1 == '':
+# 			continue
+# 		a = int(x)
+# 		_is.append(a)
+
+# _is.sort()
+# # print(_is)
+
+
+# _succs = []
+# with open(_succpath, 'r', encoding='utf-8') as f:
+# 	allLines = f.readlines()
+# 	for x in allLines:
+# 		x1 = x.replace('\n','')
+# 		# print(x1)
+# 		if x1 == '':
+# 			continue
+# 		a = int(x)
+# 		_succs.append(a)
+
+
+# _coms = []
+# _succCount = 0;
+# _allCount = 0;
+# for x in _is:
+# 	_allCount += 1
+# 	if x in  _succs:
+# 		if _allCount <= 105:
+# 			_succCount += 1
+# 		_coms.append((x, "     成功"))
+# 	else:
+# 		_coms.append((x, "     失败xxxxxx"))
+
+# print("_succCount:" + str(+_succCount))
+
+# for x in _coms:
+# 	print(x)
